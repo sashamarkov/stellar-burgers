@@ -1,0 +1,4487 @@
+=== ./.storybook/preview.tsx ===
+import React from 'react';
+import type { Preview } from '@storybook/react';
+import { BrowserRouter } from 'react-router-dom';
+
+const preview: Preview = {
+  parameters: {
+    actions: { argTypesRegex: '^on[A-Z].*' },
+    controls: {
+      matchers: {
+        color: /(background|color)$/i,
+        date: /Date$/i
+      }
+    }
+  },
+  decorators: [
+    (Story) => (
+      <BrowserRouter>
+        <div style={{ padding: 20, width: 'fit-content' }}>
+          <Story />
+        </div>
+      </BrowserRouter>
+    )
+  ]
+};
+
+export default preview;
+
+
+=== ./.storybook/main.ts ===
+import type { StorybookConfig } from '@storybook/react-webpack5';
+import path from 'path';
+
+const config: StorybookConfig = {
+  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  addons: [
+    '@storybook/addon-links',
+    '@storybook/addon-essentials',
+    '@storybook/addon-onboarding',
+    '@storybook/addon-interactions'
+  ],
+  webpackFinal: async (config) => {
+    config.resolve
+      ? (config.resolve.alias = {
+          ...config.resolve.alias,
+          '@pages': path.resolve(__dirname, '../src/pages'),
+          '@components': path.resolve(__dirname, '../src/components'),
+          '@ui': path.resolve(__dirname, '../src/components/ui'),
+          '@ui-pages': path.resolve(__dirname, '../src/components/ui/pages'),
+          '@utils-types': path.resolve(__dirname, '../src/utils/types'),
+          '@api': path.resolve(__dirname, '../src/utils/burger-api.ts'),
+          '@slices': path.resolve(__dirname, '../src/services/slices'),
+          '@selectors': path.resolve(__dirname, '../src/services/selectors')
+        })
+      : null;
+    return config;
+  },
+  framework: {
+    name: '@storybook/react-webpack5',
+    options: {
+      builder: {
+        useSWC: true
+      }
+    }
+  },
+  docs: {
+    autodocs: 'tag'
+  }
+};
+export default config;
+
+
+=== ./.storybook/storybook-config-entry.js ===
+module.exports = {
+  stories: ['../src/**/*.stories.@(js|jsx|ts|tsx)'],
+  addons: ['@storybook/addon-essentials'],
+  webpackFinal: async (config) => {
+    config.entry.push(require.resolve('../.storybook/preview.tsx'));
+
+    return config;
+  }
+};
+
+
+=== ./public/index.html ===
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <div id="modals"></div>
+    <script src="/bundle.js"></script>
+  </body>
+</html>
+
+
+=== ./webpack.config.js ===
+const path = require('path');
+const ESLintPlugin = require('eslint-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
+
+module.exports = {
+  entry: path.resolve(__dirname, './src/index.tsx'),
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: ['babel-loader']
+      },
+      {
+        test: /\.(ts)x?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'ts-loader'
+        }
+      },
+      {
+        test: /\.css$/,
+        exclude: /\.module\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.module\.css$/i,
+        exclude: /node_modules/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true
+            }
+          }
+        ]
+      },
+      {
+        test: /\.(jpg|jpeg|png|svg)$/,
+        type: 'asset/resource'
+      },
+      {
+        test: /\.(woff|woff2)$/,
+        type: 'asset/resource'
+      }
+    ]
+  },
+  plugins: [
+    new ESLintPlugin({
+      extensions: ['.js', '.jsx', '.ts', '.tsx']
+    }),
+    new HtmlWebpackPlugin({
+      template: './public/index.html'
+    }),
+    new Dotenv()
+  ],
+  resolve: {
+    extensions: [
+      '*',
+      '.js',
+      '.jsx',
+      '.ts',
+      '.tsx',
+      '.json',
+      '.css',
+      '.scss',
+      '.png',
+      '.svg',
+      '.jpg'
+    ],
+    alias: {
+      '@pages': path.resolve(__dirname, './src/pages'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@ui': path.resolve(__dirname, './src/components/ui'),
+      '@ui-pages': path.resolve(__dirname, './src/components/ui/pages'),
+      '@utils-types': path.resolve(__dirname, './src/utils/types'),
+      '@api': path.resolve(__dirname, './src/utils/burger-api.ts'),
+      '@slices': path.resolve(__dirname, './src/services/slices'),
+      '@selectors': path.resolve(__dirname, './src/services/selectors')
+    }
+  },
+  output: {
+    path: path.resolve(__dirname, './dist'),
+    filename: 'bundle.js'
+  },
+  devServer: {
+    static: path.join(__dirname, './dist'),
+    compress: true,
+    historyApiFallback: true,
+    port: 4000,
+    open: true
+  }
+};
+
+
+=== ./src/pages/login/index.ts ===
+export { Login } from './login';
+
+
+=== ./src/pages/login/login.tsx ===
+import { FC, SyntheticEvent, useState } from 'react';
+import { LoginUI } from '@ui-pages';
+
+export const Login: FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+  };
+
+  return (
+    <LoginUI
+      errorText=''
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      handleSubmit={handleSubmit}
+    />
+  );
+};
+
+
+=== ./src/pages/not-fount-404/index.ts ===
+export { NotFound404 } from './not-fount-404';
+
+
+=== ./src/pages/not-fount-404/not-fount-404.tsx ===
+import { FC } from 'react';
+
+export const NotFound404: FC = () => (
+  <h3 className={`pb-6 text text_type_main-large`}>
+    Страница не найдена. Ошибка 404.
+  </h3>
+);
+
+
+=== ./src/pages/profile-orders/index.ts ===
+export { ProfileOrders } from './profile-orders';
+
+
+=== ./src/pages/profile-orders/profile-orders.tsx ===
+import { ProfileOrdersUI } from '@ui-pages';
+import { TOrder } from '@utils-types';
+import { FC } from 'react';
+
+export const ProfileOrders: FC = () => {
+  /** TODO: взять переменную из стора */
+  const orders: TOrder[] = [];
+
+  return <ProfileOrdersUI orders={orders} />;
+};
+
+
+=== ./src/pages/forgot-password/index.ts ===
+export { ForgotPassword } from './forgot-password';
+
+
+=== ./src/pages/forgot-password/forgot-password.tsx ===
+import { FC, useState, SyntheticEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { forgotPasswordApi } from '@api';
+import { ForgotPasswordUI } from '@ui-pages';
+
+export const ForgotPassword: FC = () => {
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState<Error | null>(null);
+
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+
+    setError(null);
+    forgotPasswordApi({ email })
+      .then(() => {
+        localStorage.setItem('resetPassword', 'true');
+        navigate('/reset-password', { replace: true });
+      })
+      .catch((err) => setError(err));
+  };
+
+  return (
+    <ForgotPasswordUI
+      errorText={error?.message}
+      email={email}
+      setEmail={setEmail}
+      handleSubmit={handleSubmit}
+    />
+  );
+};
+
+
+=== ./src/pages/feed/index.ts ===
+export { Feed } from './feed';
+
+
+=== ./src/pages/feed/feed.tsx ===
+import { Preloader } from '@ui';
+import { FeedUI } from '@ui-pages';
+import { TOrder } from '@utils-types';
+import { FC } from 'react';
+
+export const Feed: FC = () => {
+  /** TODO: взять переменную из стора */
+  const orders: TOrder[] = [];
+
+  if (!orders.length) {
+    return <Preloader />;
+  }
+
+  <FeedUI orders={orders} handleGetFeeds={() => {}} />;
+};
+
+
+=== ./src/pages/constructor-page/index.ts ===
+export { ConstructorPage } from './constructor-page';
+
+
+=== ./src/pages/constructor-page/constructor-page.tsx ===
+import { useSelector } from '../../services/store';
+
+import styles from './constructor-page.module.css';
+
+import { BurgerIngredients } from '../../components';
+import { BurgerConstructor } from '../../components';
+import { Preloader } from '../../components/ui';
+import { FC } from 'react';
+
+export const ConstructorPage: FC = () => {
+  /** TODO: взять переменную из стора */
+  const isIngredientsLoading = false;
+
+  return (
+    <>
+      {isIngredientsLoading ? (
+        <Preloader />
+      ) : (
+        <main className={styles.containerMain}>
+          <h1
+            className={`${styles.title} text text_type_main-large mt-10 mb-5 pl-5`}
+          >
+            Соберите бургер
+          </h1>
+          <div className={`${styles.main} pl-5 pr-5`}>
+            <BurgerIngredients />
+            <BurgerConstructor />
+          </div>
+        </main>
+      )}
+    </>
+  );
+};
+
+
+=== ./src/pages/constructor-page/constructor-page.module.css ===
+.containerMain {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.title {
+  width: 100%;
+  max-width: 1260px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.main {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
+}
+
+
+=== ./src/pages/index.ts ===
+export * from './constructor-page';
+export * from './feed';
+export * from './forgot-password';
+export * from './login';
+export * from './not-fount-404';
+export * from './profile';
+export * from './profile-orders';
+export * from './register';
+export * from './reset-password';
+
+
+=== ./src/pages/register/register.tsx ===
+import { FC, SyntheticEvent, useState } from 'react';
+import { RegisterUI } from '@ui-pages';
+
+export const Register: FC = () => {
+  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+  };
+
+  return (
+    <RegisterUI
+      errorText=''
+      email={email}
+      userName={userName}
+      password={password}
+      setEmail={setEmail}
+      setPassword={setPassword}
+      setUserName={setUserName}
+      handleSubmit={handleSubmit}
+    />
+  );
+};
+
+
+=== ./src/pages/register/index.ts ===
+export { Register } from './register';
+
+
+=== ./src/pages/profile/profile.tsx ===
+import { ProfileUI } from '@ui-pages';
+import { FC, SyntheticEvent, useEffect, useState } from 'react';
+
+export const Profile: FC = () => {
+  /** TODO: взять переменную из стора */
+  const user = {
+    name: '',
+    email: ''
+  };
+
+  const [formValue, setFormValue] = useState({
+    name: user.name,
+    email: user.email,
+    password: ''
+  });
+
+  useEffect(() => {
+    setFormValue((prevState) => ({
+      ...prevState,
+      name: user?.name || '',
+      email: user?.email || ''
+    }));
+  }, [user]);
+
+  const isFormChanged =
+    formValue.name !== user?.name ||
+    formValue.email !== user?.email ||
+    !!formValue.password;
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+  };
+
+  const handleCancel = (e: SyntheticEvent) => {
+    e.preventDefault();
+    setFormValue({
+      name: user.name,
+      email: user.email,
+      password: ''
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormValue((prevState) => ({
+      ...prevState,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  return (
+    <ProfileUI
+      formValue={formValue}
+      isFormChanged={isFormChanged}
+      handleCancel={handleCancel}
+      handleSubmit={handleSubmit}
+      handleInputChange={handleInputChange}
+    />
+  );
+
+  return null;
+};
+
+
+=== ./src/pages/profile/index.ts ===
+export { Profile } from './profile';
+
+
+=== ./src/pages/reset-password/reset-password.tsx ===
+import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { resetPasswordApi } from '@api';
+import { ResetPasswordUI } from '@ui-pages';
+
+export const ResetPassword: FC = () => {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+    setError(null);
+    resetPasswordApi({ password, token })
+      .then(() => {
+        localStorage.removeItem('resetPassword');
+        navigate('/login');
+      })
+      .catch((err) => setError(err));
+  };
+
+  useEffect(() => {
+    if (!localStorage.getItem('resetPassword')) {
+      navigate('/forgot-password', { replace: true });
+    }
+  }, [navigate]);
+
+  return (
+    <ResetPasswordUI
+      errorText={error?.message}
+      password={password}
+      token={token}
+      setPassword={setPassword}
+      setToken={setToken}
+      handleSubmit={handleSubmit}
+    />
+  );
+};
+
+
+=== ./src/pages/reset-password/index.ts ===
+export { ResetPassword } from './reset-password';
+
+
+=== ./src/components/ui/preloader/preloader.module.css ===
+.preloader {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preloader_circle {
+  display: block;
+  width: 74px;
+  height: 74px;
+  border: 1px solid;
+  border-color: #d1d2d6 #9fa0a5 #626368 #1a1b22;
+
+  border-radius: 50%;
+
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+
+  animation: spin 0.75s infinite linear;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+
+=== ./src/components/ui/preloader/index.ts ===
+export { Preloader } from './preloader';
+
+
+=== ./src/components/ui/preloader/preloader.tsx ===
+import React from 'react';
+import styles from './preloader.module.css';
+
+export const Preloader = () => (
+  <div className={styles.preloader}>
+    <div className={styles.preloader_circle} />
+  </div>
+);
+
+
+=== ./src/components/ui/pages/login/index.ts ===
+export { LoginUI } from './login';
+
+
+=== ./src/components/ui/pages/login/type.ts ===
+import { Dispatch, SetStateAction } from 'react';
+import { PageUIProps } from '../common-type';
+
+export type LoginUIProps = PageUIProps & {
+  password: string;
+  setPassword: Dispatch<SetStateAction<string>>;
+};
+
+
+=== ./src/components/ui/pages/login/login.tsx ===
+import { FC, useState } from 'react';
+import {
+  Input,
+  Button,
+  PasswordInput
+} from '@zlden/react-developer-burger-ui-components';
+import styles from '../common.module.css';
+import { Link } from 'react-router-dom';
+import { LoginUIProps } from './type';
+
+export const LoginUI: FC<LoginUIProps> = ({
+  email,
+  setEmail,
+  errorText,
+  handleSubmit,
+  password,
+  setPassword
+}) => (
+  <main className={styles.container}>
+    <div className={`pt-6 ${styles.wrapCenter}`}>
+      <h3 className='pb-6 text text_type_main-medium'>Вход</h3>
+      <form
+        className={`pb-15 ${styles.form}`}
+        name='login'
+        onSubmit={handleSubmit}
+      >
+        <>
+          <div className='pb-6'>
+            <Input
+              type='email'
+              placeholder='E-mail'
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              name='email'
+              error={false}
+              errorText=''
+              size='default'
+            />
+          </div>
+          <div className='pb-6'>
+            <PasswordInput
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+              name='password'
+            />
+          </div>
+          <div className={`pb-6 ${styles.button}`}>
+            <Button type='primary' size='medium' htmlType='submit'>
+              Войти
+            </Button>
+          </div>
+          {errorText && (
+            <p className={`${styles.error} text text_type_main-default pb-6`}>
+              {errorText}
+            </p>
+          )}
+        </>
+      </form>
+      <div className={`pb-4 ${styles.question} text text_type_main-default`}>
+        Вы - новый пользователь?
+        <Link to='/register' className={`pl-2 ${styles.link}`}>
+          Зарегистрироваться
+        </Link>
+      </div>
+      <div className={`${styles.question} text text_type_main-default pb-6`}>
+        Забыли пароль?
+        <Link to={'/forgot-password'} className={`pl-2 ${styles.link}`}>
+          Восстановить пароль
+        </Link>
+      </div>
+    </div>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/profile-orders/index.ts ===
+export { ProfileOrdersUI } from './profile-orders';
+
+
+=== ./src/components/ui/pages/profile-orders/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type ProfileOrdersUIProps = {
+  orders: TOrder[];
+};
+
+
+=== ./src/components/ui/pages/profile-orders/profile-orders.tsx ===
+import { FC } from 'react';
+
+import styles from './profile-orders.module.css';
+
+import { ProfileOrdersUIProps } from './type';
+import { ProfileMenu, OrdersList } from '@components';
+
+export const ProfileOrdersUI: FC<ProfileOrdersUIProps> = ({ orders }) => (
+  <main className={`${styles.main}`}>
+    <div className={`mt-30 mr-15 ${styles.menu}`}>
+      <ProfileMenu />
+    </div>
+    <div className={`mt-10 ${styles.orders}`}>
+      <OrdersList orders={orders} />
+    </div>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/profile-orders/profile-orders.module.css ===
+.menu {
+  width: 320px;
+}
+
+.main {
+  display: flex;
+  height: 100%;
+  width: 1240px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.orders {
+  width: 100%;
+}
+
+
+=== ./src/components/ui/pages/forgot-password/index.ts ===
+export { ForgotPasswordUI } from './forgot-password';
+
+
+=== ./src/components/ui/pages/forgot-password/forgot-password.tsx ===
+import { FC } from 'react';
+
+import { Input, Button } from '@zlden/react-developer-burger-ui-components';
+import styles from '../common.module.css';
+import { Link } from 'react-router-dom';
+import { PageUIProps } from '../common-type';
+
+export const ForgotPasswordUI: FC<PageUIProps> = ({
+  errorText,
+  email,
+  setEmail,
+  handleSubmit
+}) => (
+  <main className={styles.container}>
+    <div className={`pt-6 ${styles.wrapCenter}`}>
+      <h3 className='pb-6 text text_type_main-medium'>Восстановление пароля</h3>
+      <form
+        className={`pb-15 ${styles.form}`}
+        name='login'
+        onSubmit={handleSubmit}
+      >
+        <div className='pb-6'>
+          <Input
+            type='email'
+            placeholder='Укажите e-mail'
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+            name='email'
+            error={false}
+            errorText=''
+            size='default'
+          />
+        </div>
+        <div className={`pb-6 ${styles.button}`}>
+          <Button type='primary' size='medium' htmlType='submit'>
+            Восстановить
+          </Button>
+        </div>
+        {errorText && (
+          <p className={`${styles.error} text text_type_main-default pb-6`}>
+            {errorText}
+          </p>
+        )}
+      </form>
+      <div className={`${styles.question} text text_type_main-default pb-6`}>
+        Вспомнили пароль?
+        <Link to={'/login'} className={`pl-2 ${styles.link}`}>
+          Войти
+        </Link>
+      </div>
+    </div>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/feed/index.ts ===
+export { FeedUI } from './feed';
+
+
+=== ./src/components/ui/pages/feed/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type FeedUIProps = {
+  orders: TOrder[];
+  handleGetFeeds: () => void;
+};
+
+
+=== ./src/components/ui/pages/feed/feed.tsx ===
+import { FC, memo } from 'react';
+
+import styles from './feed.module.css';
+
+import { FeedUIProps } from './type';
+import { OrdersList, FeedInfo } from '@components';
+import { RefreshButton } from '@zlden/react-developer-burger-ui-components';
+
+export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => (
+  <main className={styles.containerMain}>
+    <div className={`${styles.titleBox} mt-10 mb-5`}>
+      <h1 className={`${styles.title} text text_type_main-large`}>
+        Лента заказов
+      </h1>
+      <RefreshButton
+        text='Обновить'
+        onClick={handleGetFeeds}
+        extraClass={'ml-30'}
+      />
+    </div>
+    <div className={styles.main}>
+      <div className={styles.columnOrders}>
+        <OrdersList orders={orders} />
+      </div>
+      <div className={styles.columnInfo}>
+        <FeedInfo />
+      </div>
+    </div>
+  </main>
+));
+
+
+=== ./src/components/ui/pages/feed/feed.module.css ===
+.containerMain {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1240px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.titleBox {
+  width: 100%;
+  max-width: 1240px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.main {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+  width: 1240px;
+  overflow: hidden;
+}
+
+.columnOrders {
+  width: 608px;
+}
+
+.columnInfo {
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 580px;
+}
+
+
+=== ./src/components/ui/pages/constructor-page/index.ts ===
+export { ConstructorPageUI } from './constructor-page';
+
+
+=== ./src/components/ui/pages/constructor-page/type.ts ===
+export type ConstructorPageUIProps = {
+  isIngredientsLoading: boolean;
+};
+
+
+=== ./src/components/ui/pages/constructor-page/constructor-page.tsx ===
+import { FC } from 'react';
+
+import styles from './constructor-page.module.css';
+
+import { ConstructorPageUIProps } from './type';
+import { Preloader } from '@ui';
+import { BurgerIngredients, BurgerConstructor } from '@components';
+
+export const ConstructorPageUI: FC<ConstructorPageUIProps> = ({
+  isIngredientsLoading
+}) => (
+  <>
+    {isIngredientsLoading ? (
+      <Preloader />
+    ) : (
+      <main className={styles.containerMain}>
+        <h1
+          className={`${styles.title} text text_type_main-large mt-10 mb-5 pl-5`}
+        >
+          Соберите бургер
+        </h1>
+        <div className={`${styles.main} pl-5 pr-5`}>
+          <BurgerIngredients />
+          <BurgerConstructor />
+        </div>
+      </main>
+    )}
+  </>
+);
+
+
+=== ./src/components/ui/pages/constructor-page/constructor-page.module.css ===
+.containerMain {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.title {
+  width: 100%;
+  max-width: 1260px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.main {
+  display: flex;
+  justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
+}
+
+
+=== ./src/components/ui/pages/common.module.css ===
+.container {
+  display: flex;
+  max-width: 1240px;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.wrapCenter {
+  margin: auto;
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.form {
+  width: 100%;
+}
+
+.form div {
+  width: 100%;
+  text-align: right;
+}
+
+.title {
+  margin: 0;
+}
+
+.button {
+  display: flex;
+  justify-content: center;
+}
+
+.question {
+  color: #8585ad;
+}
+
+.link {
+  color: #4c4cff;
+  text-decoration: none;
+}
+
+.error {
+  color: #ff0000;
+  text-align: center;
+}
+
+
+=== ./src/components/ui/pages/index.ts ===
+export * from './constructor-page';
+export * from './feed';
+export * from './forgot-password';
+export * from './login';
+export * from './profile';
+export * from './profile-orders';
+export * from './register';
+export * from './reset-password';
+
+
+=== ./src/components/ui/pages/register/register.tsx ===
+import { FC, useState } from 'react';
+import {
+  Input,
+  Button,
+  PasswordInput
+} from '@zlden/react-developer-burger-ui-components';
+import styles from '../common.module.css';
+import { Link } from 'react-router-dom';
+import { RegisterUIProps } from './type';
+
+export const RegisterUI: FC<RegisterUIProps> = ({
+  errorText,
+  email,
+  setEmail,
+  handleSubmit,
+  password,
+  setPassword,
+  userName,
+  setUserName
+}) => (
+  <main className={styles.container}>
+    <div className={`pt-6 ${styles.wrapCenter}`}>
+      <h3 className='pb-6 text text_type_main-medium'>Регистрация</h3>
+      <form
+        className={`pb-15 ${styles.form}`}
+        name='register'
+        onSubmit={handleSubmit}
+      >
+        <>
+          <div className='pb-6'>
+            <Input
+              type='text'
+              placeholder='Имя'
+              onChange={(e) => setUserName(e.target.value)}
+              value={userName}
+              name='name'
+              error={false}
+              errorText=''
+              size='default'
+            />
+          </div>
+          <div className='pb-6'>
+            <Input
+              type='email'
+              placeholder='E-mail'
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              name={'email'}
+              error={false}
+              errorText=''
+              size={'default'}
+            />
+          </div>
+          <div className='pb-6'>
+            <PasswordInput
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+              name='password'
+            />
+          </div>
+          <div className={`pb-6 ${styles.button}`}>
+            <Button type='primary' size='medium' htmlType='submit'>
+              Зарегистрироваться
+            </Button>
+          </div>
+          {errorText && (
+            <p className={`${styles.error} text text_type_main-default pb-6`}>
+              {errorText}
+            </p>
+          )}
+        </>
+      </form>
+      <div className={`${styles.question} text text_type_main-default pb-6`}>
+        Уже зарегистрированы?
+        <Link to='/login' className={`pl-2 ${styles.link}`}>
+          Войти
+        </Link>
+      </div>
+    </div>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/register/index.ts ===
+export { RegisterUI } from './register';
+
+
+=== ./src/components/ui/pages/register/type.ts ===
+import { Dispatch, SetStateAction } from 'react';
+import { PageUIProps } from '../common-type';
+
+export type RegisterUIProps = PageUIProps & {
+  password: string;
+  userName: string;
+  setPassword: Dispatch<SetStateAction<string>>;
+  setUserName: Dispatch<SetStateAction<string>>;
+};
+
+
+=== ./src/components/ui/pages/profile/profile.tsx ===
+import { FC } from 'react';
+
+import { Button, Input } from '@zlden/react-developer-burger-ui-components';
+import styles from './profile.module.css';
+import commonStyles from '../common.module.css';
+
+import { ProfileUIProps } from './type';
+import { ProfileMenu } from '@components';
+
+export const ProfileUI: FC<ProfileUIProps> = ({
+  formValue,
+  isFormChanged,
+  updateUserError,
+  handleSubmit,
+  handleCancel,
+  handleInputChange
+}) => (
+  <main className={`${commonStyles.container}`}>
+    <div className={`mt-30 mr-15 ${styles.menu}`}>
+      <ProfileMenu />
+    </div>
+    <form
+      className={`mt-30 ${styles.form} ${commonStyles.form}`}
+      onSubmit={handleSubmit}
+    >
+      <>
+        <div className='pb-6'>
+          <Input
+            type={'text'}
+            placeholder={'Имя'}
+            onChange={handleInputChange}
+            value={formValue.name}
+            name={'name'}
+            error={false}
+            errorText={''}
+            size={'default'}
+            icon={'EditIcon'}
+          />
+        </div>
+        <div className='pb-6'>
+          <Input
+            type={'email'}
+            placeholder={'E-mail'}
+            onChange={handleInputChange}
+            value={formValue.email}
+            name={'email'}
+            error={false}
+            errorText={''}
+            size={'default'}
+            icon={'EditIcon'}
+          />
+        </div>
+        <div className='pb-6'>
+          <Input
+            type={'password'}
+            placeholder={'Пароль'}
+            onChange={handleInputChange}
+            value={formValue.password}
+            name={'password'}
+            error={false}
+            errorText={''}
+            size={'default'}
+            icon={'EditIcon'}
+          />
+        </div>
+        {isFormChanged && (
+          <div className={styles.button}>
+            <Button
+              type='secondary'
+              htmlType='button'
+              size='medium'
+              onClick={handleCancel}
+            >
+              Отменить
+            </Button>
+            <Button type='primary' size='medium' htmlType='submit'>
+              Сохранить
+            </Button>
+          </div>
+        )}
+        {updateUserError && (
+          <p
+            className={`${commonStyles.error} pt-5 text text_type_main-default`}
+          >
+            {updateUserError}
+          </p>
+        )}
+      </>
+    </form>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/profile/profile.module.css ===
+.menu {
+  width: 320px;
+}
+
+.form {
+  max-width: 480px;
+}
+
+
+=== ./src/components/ui/pages/profile/index.ts ===
+export { ProfileUI } from './profile';
+
+
+=== ./src/components/ui/pages/profile/type.ts ===
+import { ChangeEvent, SyntheticEvent } from 'react';
+
+export type ProfileUIProps = {
+  formValue: {
+    name: string;
+    email: string;
+    password: string;
+  };
+  isFormChanged: boolean;
+  handleSubmit: (e: SyntheticEvent) => void;
+  handleCancel: (e: SyntheticEvent) => void;
+  handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  updateUserError?: string;
+};
+
+
+=== ./src/components/ui/pages/reset-password/reset-password.tsx ===
+import { FC } from 'react';
+import {
+  Input,
+  Button,
+  PasswordInput
+} from '@zlden/react-developer-burger-ui-components';
+import styles from '../common.module.css';
+import { Link } from 'react-router-dom';
+import { ResetPasswordUIProps } from './type';
+
+export const ResetPasswordUI: FC<ResetPasswordUIProps> = ({
+  errorText,
+  password,
+  setPassword,
+  handleSubmit,
+  token,
+  setToken
+}) => (
+  <main className={styles.container}>
+    <div className={`pt-6 ${styles.wrapCenter}`}>
+      <h3 className='pb-6 text text_type_main-medium'>Восстановление пароля</h3>
+      <form
+        className={`pb-15 ${styles.form}`}
+        name='login'
+        onSubmit={handleSubmit}
+      >
+        <div className='pb-6'>
+          <PasswordInput
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+            name='password'
+          />
+        </div>
+        <div className='pb-6'>
+          <Input
+            type='text'
+            placeholder='Введите код из письма'
+            onChange={(e) => setToken(e.target.value)}
+            value={token}
+            name='token'
+            error={false}
+            errorText=''
+            size='default'
+          />
+        </div>
+        <div className={`pb-6 ${styles.button}`}>
+          <Button type='primary' size='medium' htmlType='submit'>
+            Сохранить
+          </Button>
+        </div>
+        {errorText && (
+          <p className={`${styles.error} text text_type_main-default pb-6`}>
+            {errorText}
+          </p>
+        )}
+      </form>
+      <div className={`${styles.question} text text_type_main-default pb-6`}>
+        Вспомнили пароль?
+        <Link to='/login' className={`pl-2 ${styles.link}`}>
+          Войти
+        </Link>
+      </div>
+    </div>
+  </main>
+);
+
+
+=== ./src/components/ui/pages/reset-password/index.ts ===
+export { ResetPasswordUI } from './reset-password';
+
+
+=== ./src/components/ui/pages/reset-password/type.ts ===
+import { Dispatch, SetStateAction } from 'react';
+import { PageUIProps } from '../common-type';
+
+export type ResetPasswordUIProps = Omit<PageUIProps, 'email' | 'setEmail'> & {
+  password: string;
+  token: string;
+  setPassword: Dispatch<SetStateAction<string>>;
+  setToken: Dispatch<SetStateAction<string>>;
+};
+
+
+=== ./src/components/ui/pages/common-type.ts ===
+import { Dispatch, SetStateAction, SyntheticEvent } from 'react';
+
+export type PageUIProps = {
+  errorText: string | undefined;
+  email: string;
+  setEmail: Dispatch<SetStateAction<string>>;
+  handleSubmit: (e: SyntheticEvent) => void;
+};
+
+
+=== ./src/components/ui/feed-info/feed-info.module.css ===
+.columns {
+  display: flex;
+  justify-content: left;
+  align-items: flex-start;
+}
+.column {
+  display: inline;
+  min-width: 50%;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 180px;
+  overflow: hidden;
+}
+
+.title {
+  margin: 0;
+  text-align: left;
+}
+
+.list_item {
+  text-align: left;
+  min-width: 50%;
+}
+
+.content {
+  text-align: left;
+}
+
+
+=== ./src/components/ui/feed-info/index.ts ===
+export { FeedInfoUI } from './feed-info';
+
+
+=== ./src/components/ui/feed-info/type.ts ===
+export type FeedInfoUIProps = {
+  feed: any;
+  readyOrders: number[];
+  pendingOrders: number[];
+};
+
+export type HalfColumnProps = {
+  orders: number[];
+  title: string;
+  textColor?: string;
+};
+
+export type TColumnProps = {
+  title: string;
+  content: number;
+};
+
+
+=== ./src/components/ui/feed-info/feed-info.tsx ===
+import React, { FC, memo } from 'react';
+
+import styles from './feed-info.module.css';
+
+import { FeedInfoUIProps, HalfColumnProps, TColumnProps } from './type';
+
+export const FeedInfoUI: FC<FeedInfoUIProps> = memo(
+  ({ feed, readyOrders, pendingOrders }) => {
+    const { total, totalToday } = feed;
+
+    return (
+      <section>
+        <div className={styles.columns}>
+          <HalfColumn
+            orders={readyOrders}
+            title={'Готовы'}
+            textColor={'blue'}
+          />
+          <HalfColumn orders={pendingOrders} title={'В работе'} />
+        </div>
+        <Column title={'Выполнено за все время'} content={total} />
+        <Column title={'Выполнено за сегодня'} content={totalToday} />
+      </section>
+    );
+  }
+);
+
+const HalfColumn: FC<HalfColumnProps> = ({ orders, title, textColor }) => (
+  <div className={`pr-6 ${styles.column}`}>
+    <h3 className={`text text_type_main-medium ${styles.title}`}>{title}:</h3>
+    <ul className={`pt-6  ${styles.list}`}>
+      {orders.map((item, index) => (
+        <li
+          className={`text text_type_digits-default ${styles.list_item}`}
+          style={{ color: textColor === 'blue' ? '#00cccc' : '#F2F2F3' }}
+          key={index}
+        >
+          {item}
+        </li>
+      ))}
+    </ul>
+  </div>
+);
+
+const Column: FC<TColumnProps> = ({ title, content }) => (
+  <>
+    <h3 className={`pt-15 text text_type_main-medium ${styles.title}`}>
+      {title}:
+    </h3>
+    <p className={`text text_type_digits-large ${styles.content}`}>{content}</p>
+  </>
+);
+
+
+=== ./src/components/ui/app-header/app-header.module.css ===
+.header {
+  background-color: var(--background);
+}
+.menu {
+  display: flex;
+  align-items: center;
+  max-width: 1240px;
+  height: 56px;
+  margin: 0 auto;
+}
+
+.menu_part_left {
+  display: flex;
+  flex-basis: 35%;
+}
+
+.link {
+  display: flex;
+  text-decoration: none;
+  color: var(--text-inactive-color);
+}
+
+.link_active {
+  color: var(--text-primary-color);
+}
+
+.link_position_last {
+  display: flex;
+  justify-content: flex-end;
+  flex-basis: 35%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+}
+
+
+=== ./src/components/ui/app-header/index.ts ===
+export { AppHeaderUI } from './app-header';
+
+
+=== ./src/components/ui/app-header/app-header.tsx ===
+import React, { FC } from 'react';
+import styles from './app-header.module.css';
+import { TAppHeaderUIProps } from './type';
+import {
+  BurgerIcon,
+  ListIcon,
+  Logo,
+  ProfileIcon
+} from '@zlden/react-developer-burger-ui-components';
+
+export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => (
+  <header className={styles.header}>
+    <nav className={`${styles.menu} p-4`}>
+      <div className={styles.menu_part_left}>
+        <>
+          <BurgerIcon type={'primary'} />
+          <p className='text text_type_main-default ml-2 mr-10'>Конструктор</p>
+        </>
+        <>
+          <ListIcon type={'primary'} />
+          <p className='text text_type_main-default ml-2'>Лента заказов</p>
+        </>
+      </div>
+      <div className={styles.logo}>
+        <Logo className='' />
+      </div>
+      <div className={styles.link_position_last}>
+        <ProfileIcon type={'primary'} />
+        <p className='text text_type_main-default ml-2'>
+          {userName || 'Личный кабинет'}
+        </p>
+      </div>
+    </nav>
+  </header>
+);
+
+
+=== ./src/components/ui/app-header/type.ts ===
+export type TAppHeaderUIProps = {
+  userName: string | undefined;
+};
+
+
+=== ./src/components/ui/index.ts ===
+export * from './app-header';
+export * from './burger-constructor';
+export * from './burger-constructor-element';
+export * from './burger-ingredient';
+export * from './burger-ingredients';
+export * from './feed-info';
+export * from './ingredient-details';
+export * from './ingredients-category';
+export * from './modal';
+export * from './modal-overlay';
+export * from './order-card';
+export * from './order-details';
+export * from './order-info';
+export * from './order-status';
+export * from './orders-list';
+export * from './preloader';
+export * from './profile-menu';
+
+
+=== ./src/components/ui/order-status/index.ts ===
+export { OrderStatusUI } from './order-status';
+
+
+=== ./src/components/ui/order-status/type.ts ===
+export type OrderStatusUIProps = {
+  textStyle: string;
+  text: string;
+};
+
+
+=== ./src/components/ui/order-status/order-status.tsx ===
+import React, { FC } from 'react';
+import { OrderStatusUIProps } from './type';
+
+export const OrderStatusUI: FC<OrderStatusUIProps> = ({ textStyle, text }) => (
+  <span
+    className='text text_type_main-default pt-2'
+    style={{ color: textStyle }}
+  >
+    {text}
+  </span>
+);
+
+
+=== ./src/components/ui/modal/index.ts ===
+export { ModalUI } from './modal';
+
+
+=== ./src/components/ui/modal/modal.module.css ===
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  margin: auto;
+  padding: 40px 40px 60px;
+  background-color: #1c1c21;
+  border-radius: 40px;
+  box-shadow:
+    0px 24px 32px rgba(0, 0, 0, 0.04),
+    0px 16px 24px rgba(0, 0, 0, 0.04),
+    0px 4px 8px rgba(0, 0, 0, 0.04),
+    0px 0px 1px rgba(0, 0, 0, 0.04);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+}
+
+.button {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0);
+  margin-left: auto;
+  padding: 0;
+}
+
+.img {
+  margin: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+=== ./src/components/ui/modal/type.ts ===
+import { ReactNode } from 'react';
+
+export type TModalUIProps = {
+  title: string;
+  onClose: () => void;
+  children?: ReactNode;
+};
+
+
+=== ./src/components/ui/modal/modal.tsx ===
+import { FC, memo } from 'react';
+
+import styles from './modal.module.css';
+
+import { CloseIcon } from '@zlden/react-developer-burger-ui-components';
+import { TModalUIProps } from './type';
+import { ModalOverlayUI } from '@ui';
+
+export const ModalUI: FC<TModalUIProps> = memo(
+  ({ title, onClose, children }) => (
+    <>
+      <div className={styles.modal}>
+        <div className={styles.header}>
+          <h3 className={`${styles.title} text text_type_main-large`}>
+            {title}
+          </h3>
+          <button className={styles.button} type='button'>
+            <CloseIcon type='primary' onClick={onClose} />
+          </button>
+        </div>
+        <div className={styles.content}>{children}</div>
+      </div>
+      <ModalOverlayUI onClick={onClose} />
+    </>
+  )
+);
+
+
+=== ./src/components/ui/burger-ingredients/index.ts ===
+export { BurgerIngredientsUI } from './burger-ingredients';
+
+
+=== ./src/components/ui/burger-ingredients/burger-ingredients.tsx ===
+import React, { FC, memo } from 'react';
+import { Tab } from '@zlden/react-developer-burger-ui-components';
+
+import styles from './burger-ingredients.module.css';
+import { BurgerIngredientsUIProps } from './type';
+import { IngredientsCategory } from '@components';
+
+export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
+  ({
+    currentTab,
+    buns,
+    mains,
+    sauces,
+    titleBunRef,
+    titleMainRef,
+    titleSaucesRef,
+    bunsRef,
+    mainsRef,
+    saucesRef,
+    onTabClick
+  }) => (
+    <>
+      <section className={styles.burger_ingredients}>
+        <nav>
+          <ul className={styles.menu}>
+            <Tab value='bun' active={currentTab === 'bun'} onClick={onTabClick}>
+              Булки
+            </Tab>
+            <Tab
+              value='main'
+              active={currentTab === 'main'}
+              onClick={onTabClick}
+            >
+              Начинки
+            </Tab>
+            <Tab
+              value='sauce'
+              active={currentTab === 'sauce'}
+              onClick={onTabClick}
+            >
+              Соусы
+            </Tab>
+          </ul>
+        </nav>
+        <div className={styles.content}>
+          <IngredientsCategory
+            title='Булки'
+            titleRef={titleBunRef}
+            ingredients={buns}
+            ref={bunsRef}
+          />
+          <IngredientsCategory
+            title='Начинки'
+            titleRef={titleMainRef}
+            ingredients={mains}
+            ref={mainsRef}
+          />
+          <IngredientsCategory
+            title='Соусы'
+            titleRef={titleSaucesRef}
+            ingredients={sauces}
+            ref={saucesRef}
+          />
+        </div>
+      </section>
+    </>
+  )
+);
+
+
+=== ./src/components/ui/burger-ingredients/type.ts ===
+import { RefObject } from 'react';
+import { TIngredient, TTabMode } from '@utils-types';
+
+export type BurgerIngredientsUIProps = {
+  currentTab: TTabMode;
+  buns: TIngredient[];
+  mains: TIngredient[];
+  sauces: TIngredient[];
+  titleBunRef: RefObject<HTMLHeadingElement>;
+  titleMainRef: RefObject<HTMLHeadingElement>;
+  titleSaucesRef: RefObject<HTMLHeadingElement>;
+  bunsRef: (node?: Element | null | undefined) => void;
+  mainsRef: (node?: Element | null | undefined) => void;
+  saucesRef: (node?: Element | null | undefined) => void;
+  onTabClick: (val: string) => void;
+};
+
+
+=== ./src/components/ui/burger-ingredients/burger-ingredients.module.css ===
+.burger_ingredients {
+  font-family: 'Jet Brains Mono';
+  color: #f2f2f3;
+  max-width: 600px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+p {
+  margin: 0;
+}
+
+.tab {
+  width: 120px;
+}
+
+.content {
+  overflow-y: scroll;
+}
+
+.menu {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.categories {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+
+=== ./src/components/ui/burger-constructor/burger-constructor.module.css ===
+.burger_constructor {
+  width: 600px;
+  color: #f2f2f3;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+}
+
+.elements {
+  min-height: 100px;
+
+  overflow-y: scroll;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.cost {
+  display: flex;
+  align-items: center;
+}
+
+.text {
+  font-family: Iceland;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 48px;
+  line-height: 36px;
+}
+
+.noBuns {
+  box-sizing: border-box;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--common-border-radius-s);
+  background: var(--background-element);
+  min-height: 80px;
+  font-family: 'Jet Brains Mono';
+  font-size: 16px;
+  line-height: 24px;
+  color: #f2f2f3;
+  margin-left: 44px;
+}
+
+.noBunsTop {
+  border-radius: var(--top-constructor-item-border-radius);
+}
+
+.noBunsBottom {
+  border-radius: var(--bottom-constructor-item-border-radius);
+}
+
+.element {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.element:last-child {
+  margin-bottom: 0;
+}
+
+.element_fullwidth {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 536px;
+}
+
+
+=== ./src/components/ui/burger-constructor/burger-constructor.tsx ===
+import React, { FC } from 'react';
+import {
+  Button,
+  ConstructorElement,
+  CurrencyIcon
+} from '@zlden/react-developer-burger-ui-components';
+import styles from './burger-constructor.module.css';
+import { BurgerConstructorUIProps } from './type';
+import { TConstructorIngredient } from '@utils-types';
+import { BurgerConstructorElement, Modal } from '@components';
+import { Preloader, OrderDetailsUI } from '@ui';
+
+export const BurgerConstructorUI: FC<BurgerConstructorUIProps> = ({
+  constructorItems,
+  orderRequest,
+  price,
+  orderModalData,
+  onOrderClick,
+  closeOrderModal
+}) => (
+  <section className={styles.burger_constructor}>
+    {constructorItems.bun ? (
+      <div className={`${styles.element} mb-4 mr-4`}>
+        <ConstructorElement
+          type='top'
+          isLocked
+          text={`${constructorItems.bun.name} (верх)`}
+          price={constructorItems.bun.price}
+          thumbnail={constructorItems.bun.image}
+        />
+      </div>
+    ) : (
+      <div
+        className={`${styles.noBuns} ${styles.noBunsTop} ml-8 mb-4 mr-5 text text_type_main-default`}
+      >
+        Выберите булки
+      </div>
+    )}
+    <ul className={styles.elements}>
+      {constructorItems.ingredients.length > 0 ? (
+        constructorItems.ingredients.map(
+          (item: TConstructorIngredient, index: number) => (
+            <BurgerConstructorElement
+              ingredient={item}
+              index={index}
+              totalItems={constructorItems.ingredients.length}
+              key={item.id}
+            />
+          )
+        )
+      ) : (
+        <div
+          className={`${styles.noBuns} ml-8 mb-4 mr-5 text text_type_main-default`}
+        >
+          Выберите начинку
+        </div>
+      )}
+    </ul>
+    {constructorItems.bun ? (
+      <div className={`${styles.element} mt-4 mr-4`}>
+        <ConstructorElement
+          type='bottom'
+          isLocked
+          text={`${constructorItems.bun.name} (низ)`}
+          price={constructorItems.bun.price}
+          thumbnail={constructorItems.bun.image}
+        />
+      </div>
+    ) : (
+      <div
+        className={`${styles.noBuns} ${styles.noBunsBottom} ml-8 mb-4 mr-5 text text_type_main-default`}
+      >
+        Выберите булки
+      </div>
+    )}
+    <div className={`${styles.total} mt-10 mr-4`}>
+      <div className={`${styles.cost} mr-10`}>
+        <p className={`text ${styles.text} mr-2`}>{price}</p>
+        <CurrencyIcon type='primary' />
+      </div>
+      <Button
+        htmlType='button'
+        type='primary'
+        size='large'
+        children='Оформить заказ'
+        onClick={onOrderClick}
+      />
+    </div>
+
+    {orderRequest && (
+      <Modal onClose={closeOrderModal} title={'Оформляем заказ...'}>
+        <Preloader />
+      </Modal>
+    )}
+
+    {orderModalData && (
+      <Modal
+        onClose={closeOrderModal}
+        title={orderRequest ? 'Оформляем заказ...' : ''}
+      >
+        <OrderDetailsUI orderNumber={orderModalData.number} />
+      </Modal>
+    )}
+  </section>
+);
+
+
+=== ./src/components/ui/burger-constructor/index.ts ===
+export { BurgerConstructorUI } from './burger-constructor';
+
+
+=== ./src/components/ui/burger-constructor/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type BurgerConstructorUIProps = {
+  constructorItems: any;
+  orderRequest: boolean;
+  price: number;
+  orderModalData: TOrder | null;
+  onOrderClick: () => void;
+  closeOrderModal: () => void;
+};
+
+
+=== ./src/components/ui/order-details/index.ts ===
+export { OrderDetailsUI } from './order-details';
+
+
+=== ./src/components/ui/order-details/type.ts ===
+export type OrderDetailsUIProps = {
+  orderNumber: number;
+};
+
+
+=== ./src/components/ui/order-details/order-details.module.css ===
+.img {
+  margin: 61px 0;
+}
+
+.title {
+  text-shadow:
+    0px 0px 16px rgba(51, 51, 255, 0.25),
+    0px 0px 8px rgba(51, 51, 255, 0.25),
+    0px 4px 32px rgba(51, 51, 255, 0.5);
+}
+
+.text {
+  color: #8585ad;
+}
+
+
+=== ./src/components/ui/order-details/order-details.tsx ===
+import React from 'react';
+import styles from './order-details.module.css';
+import doneImg from '../../../images/done.svg';
+import { OrderDetailsUIProps } from './type';
+
+export const OrderDetailsUI: React.FC<OrderDetailsUIProps> = ({
+  orderNumber
+}) => (
+  <>
+    <h2 className={`${styles.title} text text_type_digits-large mt-2 mb-4`}>
+      {orderNumber}
+    </h2>
+    <p className='text text_type_main-medium'>идентификатор заказа</p>
+    <img
+      className={styles.img}
+      src={doneImg}
+      alt='изображение статуса заказа.'
+    />
+    <p className='text text_type_main-default mb-1'>
+      Ваш заказ начали готовить
+    </p>
+    <p className={`${styles.text} text text_type_main-default`}>
+      Дождитесь готовности на орбитальной станции
+    </p>
+  </>
+);
+
+
+=== ./src/components/ui/profile-menu/profile-menu.module.css ===
+.link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  display: block;
+  color: #8585ad;
+}
+
+.link_active {
+  color: #f2f2f3;
+}
+
+.button {
+  text-decoration: none;
+  display: block;
+  color: #8585ad;
+  background-color: unset;
+  border: none;
+}
+
+.button:hover {
+  cursor: pointer;
+}
+
+
+=== ./src/components/ui/profile-menu/index.ts ===
+export { ProfileMenuUI } from './profile-menu';
+
+
+=== ./src/components/ui/profile-menu/profile-menu.tsx ===
+import React, { FC } from 'react';
+import styles from './profile-menu.module.css';
+import { NavLink } from 'react-router-dom';
+import { ProfileMenuUIProps } from './type';
+
+export const ProfileMenuUI: FC<ProfileMenuUIProps> = ({
+  pathname,
+  handleLogout
+}) => (
+  <>
+    <NavLink
+      to={'/profile'}
+      className={({ isActive }) =>
+        `text text_type_main-medium text_color_inactive pt-4 pb-4 ${
+          styles.link
+        } ${isActive ? styles.link_active : ''}`
+      }
+      end
+    >
+      Профиль
+    </NavLink>
+    <NavLink
+      to={'/profile/orders'}
+      className={({ isActive }) =>
+        `text text_type_main-medium text_color_inactive pt-4 pb-4 ${
+          styles.link
+        } ${isActive ? styles.link_active : ''}`
+      }
+    >
+      История заказов
+    </NavLink>
+    <button
+      className={`text text_type_main-medium text_color_inactive pt-4 pb-4 ${styles.button}`}
+      onClick={handleLogout}
+    >
+      Выход
+    </button>
+    <p className='pt-20 text text_type_main-default text_color_inactive'>
+      {pathname === '/profile'
+        ? 'В этом разделе вы можете изменить свои персональные данные'
+        : 'В этом разделе вы можете просмотреть свою историю заказов'}
+    </p>
+  </>
+);
+
+
+=== ./src/components/ui/profile-menu/type.ts ===
+export type ProfileMenuUIProps = {
+  pathname: string;
+  handleLogout: () => void;
+};
+
+
+=== ./src/components/ui/burger-ingredient/index.ts ===
+export { BurgerIngredientUI } from './burger-ingredient';
+
+
+=== ./src/components/ui/burger-ingredient/type.ts ===
+import { Location } from 'react-router-dom';
+import { TIngredient } from '@utils-types';
+
+export type TBurgerIngredientUIProps = {
+  ingredient: TIngredient;
+  count: number;
+  locationState: { background: Location };
+  handleAdd: () => void;
+};
+
+
+=== ./src/components/ui/burger-ingredient/burger-ingredient.tsx ===
+import React, { FC, memo } from 'react';
+import { Link } from 'react-router-dom';
+import styles from './burger-ingredient.module.css';
+
+import {
+  Counter,
+  CurrencyIcon,
+  AddButton
+} from '@zlden/react-developer-burger-ui-components';
+
+import { TBurgerIngredientUIProps } from './type';
+
+export const BurgerIngredientUI: FC<TBurgerIngredientUIProps> = memo(
+  ({ ingredient, count, handleAdd, locationState }) => {
+    const { image, price, name, _id } = ingredient;
+
+    return (
+      <li className={styles.container}>
+        <Link
+          className={styles.article}
+          to={`/ingredients/${_id}`}
+          state={locationState}
+        >
+          {count && <Counter count={count} />}
+          <img className={styles.img} src={image} alt='картинка ингредиента.' />
+          <div className={`${styles.cost} mt-2 mb-2`}>
+            <p className='text text_type_digits-default mr-2'>{price}</p>
+            <CurrencyIcon type='primary' />
+          </div>
+          <p className={`text text_type_main-default ${styles.text}`}>{name}</p>
+        </Link>
+        <AddButton
+          text='Добавить'
+          onClick={handleAdd}
+          extraClass={`${styles.addButton} mt-8`}
+        />
+      </li>
+    );
+  }
+);
+
+
+=== ./src/components/ui/burger-ingredient/burger-ingredient.module.css ===
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.article {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #ffff;
+}
+
+.cost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text {
+  text-align: center;
+}
+
+.addButton {
+  width: 260px;
+  justify-content: center;
+}
+
+
+=== ./src/components/ui/ingredients-category/ingredients-category.module.css ===
+.items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 40px;
+  margin: 0;
+  padding: 0;
+}
+
+
+=== ./src/components/ui/ingredients-category/ingredients-category.tsx ===
+import styles from './ingredients-category.module.css';
+import { forwardRef } from 'react';
+import { TIngredientsCategoryUIProps } from './type';
+import { BurgerIngredient } from '@components';
+
+export const IngredientsCategoryUI = forwardRef<
+  HTMLUListElement,
+  TIngredientsCategoryUIProps
+>(({ title, titleRef, ingredients, ingredientsCounters }, ref) => (
+  <>
+    <h3 className='text text_type_main-medium mt-10 mb-6' ref={titleRef}>
+      {title}
+    </h3>
+    <ul className={styles.items} ref={ref}>
+      {ingredients.map((ingredient) => (
+        <BurgerIngredient
+          ingredient={ingredient}
+          key={ingredient._id}
+          count={ingredientsCounters[ingredient._id]}
+        />
+      ))}
+    </ul>
+  </>
+));
+
+
+=== ./src/components/ui/ingredients-category/index.ts ===
+export { IngredientsCategoryUI } from './ingredients-category';
+
+
+=== ./src/components/ui/ingredients-category/type.ts ===
+import { TIngredient } from '@utils-types';
+
+export type TIngredientsCategoryUIProps = {
+  title: string;
+  titleRef: React.RefObject<HTMLHeadingElement>;
+  ingredients: TIngredient[];
+  ingredientsCounters: Record<string, number>;
+};
+
+
+=== ./src/components/ui/burger-constructor-element/index.ts ===
+export { BurgerConstructorElementUI } from './burger-constructor-element';
+
+
+=== ./src/components/ui/burger-constructor-element/burger-constructor-element.module.css ===
+.element {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.element:last-child {
+  margin-bottom: 0;
+}
+
+.element_fullwidth {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 536px;
+}
+
+
+=== ./src/components/ui/burger-constructor-element/type.ts ===
+import { TConstructorIngredient } from '@utils-types';
+
+export type BurgerConstructorElementUIProps = {
+  ingredient: TConstructorIngredient;
+  index: number;
+  totalItems: number;
+  handleMoveUp: () => void;
+  handleMoveDown: () => void;
+  handleClose: () => void;
+};
+
+
+=== ./src/components/ui/burger-constructor-element/burger-constructor-element.tsx ===
+import React, { FC, memo } from 'react';
+import styles from './burger-constructor-element.module.css';
+import { ConstructorElement } from '@zlden/react-developer-burger-ui-components';
+import { BurgerConstructorElementUIProps } from './type';
+import { MoveButton } from '@zlden/react-developer-burger-ui-components';
+
+export const BurgerConstructorElementUI: FC<BurgerConstructorElementUIProps> =
+  memo(
+    ({
+      ingredient,
+      index,
+      totalItems,
+      handleMoveUp,
+      handleMoveDown,
+      handleClose
+    }) => (
+      <li className={`${styles.element} mb-4 mr-2`}>
+        <MoveButton
+          handleMoveDown={handleMoveDown}
+          handleMoveUp={handleMoveUp}
+          isUpDisabled={index === 0}
+          isDownDisabled={index === totalItems - 1}
+        />
+        <div className={`${styles.element_fullwidth} ml-2`}>
+          <ConstructorElement
+            text={ingredient.name}
+            price={ingredient.price}
+            thumbnail={ingredient.image}
+            handleClose={handleClose}
+          />
+        </div>
+      </li>
+    )
+  );
+
+
+=== ./src/components/ui/modal-overlay/modal-overlay.tsx ===
+import styles from './modal-overlay.module.css';
+
+export const ModalOverlayUI = ({ onClick }: { onClick: () => void }) => (
+  <div className={styles.overlay} onClick={onClick} />
+);
+
+
+=== ./src/components/ui/modal-overlay/index.ts ===
+export { ModalOverlayUI } from './modal-overlay';
+
+
+=== ./src/components/ui/modal-overlay/modal-overlay.module.css ===
+.overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 2;
+}
+
+
+=== ./src/components/ui/order-card/index.ts ===
+export { OrderCardUI } from './order-card';
+
+
+=== ./src/components/ui/order-card/type.ts ===
+import { Location } from 'react-router-dom';
+import { TIngredient } from '@utils-types';
+
+export type OrderCardUIProps = {
+  orderInfo: TOrderInfo;
+  maxIngredients: number;
+  locationState: { background: Location };
+};
+
+type TOrderInfo = {
+  ingredientsInfo: TIngredient[];
+  ingredientsToShow: TIngredient[];
+  remains: number;
+  total: number;
+  date: Date;
+  _id: string;
+  status: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  number: number;
+  ingredients: string[];
+};
+
+
+=== ./src/components/ui/order-card/order-card.tsx ===
+import React, { FC, memo } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  CurrencyIcon,
+  FormattedDate
+} from '@zlden/react-developer-burger-ui-components';
+
+import styles from './order-card.module.css';
+
+import { OrderCardUIProps } from './type';
+import { OrderStatus } from '@components';
+
+export const OrderCardUI: FC<OrderCardUIProps> = memo(
+  ({ orderInfo, maxIngredients, locationState }) => (
+    <Link
+      to={orderInfo.number.toString()}
+      relative='path'
+      state={locationState}
+      className={`p-6 mb-4 mr-2 ${styles.order}`}
+    >
+      <div className={styles.order_info}>
+        <span className={`text text_type_digits-default ${styles.number}`}>
+          #{String(orderInfo.number).padStart(6, '0')}
+        </span>
+        <span className='text text_type_main-default text_color_inactive'>
+          <FormattedDate date={orderInfo.date} />
+        </span>
+      </div>
+      <h4 className={`pt-6 text text_type_main-medium ${styles.order_name}`}>
+        {orderInfo.name}
+      </h4>
+      {location.pathname === '/profile/orders' && (
+        <OrderStatus status={orderInfo.status} />
+      )}
+      <div className={`pt-6 ${styles.order_content}`}>
+        <ul className={styles.ingredients}>
+          {orderInfo.ingredientsToShow.map((ingredient, index) => {
+            let zIndex = maxIngredients - index;
+            let right = 20 * index;
+            return (
+              <li
+                className={styles.img_wrap}
+                style={{ zIndex: zIndex, right: right }}
+                key={index}
+              >
+                <img
+                  style={{
+                    opacity:
+                      orderInfo.remains && maxIngredients === index + 1
+                        ? '0.5'
+                        : '1'
+                  }}
+                  className={styles.img}
+                  src={ingredient.image_mobile}
+                  alt={ingredient.name}
+                />
+                {maxIngredients === index + 1 ? (
+                  <span
+                    className={`text text_type_digits-default ${styles.remains}`}
+                  >
+                    {orderInfo.remains > 0 ? `+${orderInfo.remains}` : null}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+        <div>
+          <span
+            className={`text text_type_digits-default pr-1 ${styles.order_total}`}
+          >
+            {orderInfo.total}
+          </span>
+          <CurrencyIcon type='primary' />
+        </div>
+      </div>
+    </Link>
+  )
+);
+
+
+=== ./src/components/ui/order-card/order-card.module.css ===
+.ingredients {
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+
+.order {
+  display: block;
+  text-decoration: none;
+  color: unset;
+  background-color: #1c1c21;
+  border-radius: 40px;
+  min-width: 576px;
+  box-sizing: border-box;
+}
+
+.order_info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.order_name {
+  text-align: left;
+}
+
+.order_content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order_total {
+  vertical-align: top;
+}
+
+.img_wrap {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: #801ab3 solid 2px;
+  background-color: #1c1c21;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.img_wrap:nth-child(n + 2) {
+  position: relative;
+  right: 25px;
+}
+
+.img {
+  position: relative;
+  right: 25px;
+  width: 112px;
+  height: 56px;
+}
+
+.remains {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
+=== ./src/components/ui/order-info/index.ts ===
+export { OrderInfoUI } from './order-info';
+
+
+=== ./src/components/ui/order-info/order-info.module.css ===
+.wrap {
+  margin: 0 auto;
+  width: 640px;
+}
+.number {
+  text-align: center;
+}
+
+.status {
+  color: #00cccc;
+}
+
+.header {
+  margin: 0;
+}
+
+.img_wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(63.18deg, #801ab3 0%, #4c4cff 100%);
+  position: relative;
+}
+
+.border {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #1c1c21;
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  text-align: center;
+}
+
+.img {
+  position: relative;
+  right: 25px;
+  width: 112px;
+  height: 56px;
+}
+
+.item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.quantity {
+  margin-left: auto;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  overflow-y: auto;
+  max-height: 320px;
+}
+
+.list::-webkit-scrollbar {
+  width: 8px;
+  background-color: #2f2f37;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background-color: #8585ad;
+}
+
+.bottom {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.total {
+  margin-left: auto;
+}
+
+
+=== ./src/components/ui/order-info/type.ts ===
+import { TIngredient } from '@utils-types';
+
+export type OrderInfoUIProps = {
+  orderInfo: TOrderInfo;
+};
+
+type TOrderInfo = {
+  ingredientsInfo: {
+    [key: string]: TIngredient & { count: number };
+  };
+  date: Date;
+  total: number;
+  _id: string;
+  status: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  number: number;
+  ingredients: string[];
+};
+
+
+=== ./src/components/ui/order-info/order-info.tsx ===
+import React, { FC, memo } from 'react';
+import {
+  CurrencyIcon,
+  FormattedDate
+} from '@zlden/react-developer-burger-ui-components';
+
+import styles from './order-info.module.css';
+
+import { OrderInfoUIProps } from './type';
+import { OrderStatus } from '@components';
+
+export const OrderInfoUI: FC<OrderInfoUIProps> = memo(({ orderInfo }) => (
+  <div className={styles.wrap}>
+    <h3 className={`text text_type_main-medium  pb-3 pt-10 ${styles.header}`}>
+      {orderInfo.name}
+    </h3>
+    <OrderStatus status={orderInfo.status} />
+    <p className={`text text_type_main-medium pt-15 pb=6`}>Состав:</p>
+    <ul className={`${styles.list} mb-8`}>
+      {Object.values(orderInfo.ingredientsInfo).map((item, index) => (
+        <li className={`pb-4 pr-6 ${styles.item}`} key={index}>
+          <div className={styles.img_wrap}>
+            <div className={styles.border}>
+              <img
+                className={styles.img}
+                src={item.image_mobile}
+                alt={item.name}
+              />
+            </div>
+          </div>
+          <span className='text text_type_main-default pl-4'>{item.name}</span>
+          <span
+            className={`text text_type_digits-default pl-4 pr-4 ${styles.quantity}`}
+          >
+            {item.count} x {item.price}
+          </span>
+          <CurrencyIcon type={'primary'} />
+        </li>
+      ))}
+    </ul>
+    <div className={styles.bottom}>
+      <p className='text text_type_main-default text_color_inactive'>
+        <FormattedDate date={orderInfo.date} />
+      </p>
+      <span className={`text text_type_digits-default pr-4 ${styles.total}`}>
+        {orderInfo.total}
+      </span>
+      <CurrencyIcon type={'primary'} />
+    </div>
+  </div>
+));
+
+
+=== ./src/components/ui/orders-list/orders-list.tsx ===
+import { FC } from 'react';
+
+import styles from './orders-list.module.css';
+
+import { OrdersListUIProps } from './type';
+import { OrderCard } from '@components';
+
+export const OrdersListUI: FC<OrdersListUIProps> = ({ orderByDate }) => (
+  <div className={`${styles.content}`}>
+    {orderByDate.map((order) => (
+      <OrderCard order={order} key={order._id} />
+    ))}
+  </div>
+);
+
+
+=== ./src/components/ui/orders-list/index.ts ===
+export { OrdersListUI } from './orders-list';
+
+
+=== ./src/components/ui/orders-list/orders-list.module.css ===
+.content {
+  overflow-y: scroll;
+  width: 100%;
+  height: 100%;
+}
+
+
+=== ./src/components/ui/orders-list/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type OrdersListUIProps = {
+  orderByDate: TOrder[];
+};
+
+
+=== ./src/components/ui/ingredient-details/index.ts ===
+export { IngredientDetailsUI } from './ingredient-details';
+
+
+=== ./src/components/ui/ingredient-details/type.ts ===
+import { TIngredient } from '@utils-types';
+
+export type IngredientDetailsUIProps = {
+  ingredientData: TIngredient;
+};
+
+
+=== ./src/components/ui/ingredient-details/ingredient-details.module.css ===
+.content {
+  margin: 0 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 520px;
+}
+
+.nutritional_values {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  color: #8585ad;
+}
+
+.nutritional_value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+=== ./src/components/ui/ingredient-details/ingredient-details.tsx ===
+import React, { FC, memo } from 'react';
+import styles from './ingredient-details.module.css';
+import { IngredientDetailsUIProps } from './type';
+
+export const IngredientDetailsUI: FC<IngredientDetailsUIProps> = memo(
+  ({ ingredientData }) => {
+    const { name, image_large, calories, proteins, fat, carbohydrates } =
+      ingredientData;
+
+    return (
+      <div className={styles.content}>
+        <img
+          className={styles.img}
+          alt='изображение ингредиента.'
+          src={image_large}
+        />
+        <h3 className='text text_type_main-medium mt-2 mb-4'>{name}</h3>
+        <ul className={`${styles.nutritional_values} text_type_main-default`}>
+          <li className={styles.nutritional_value}>
+            <p className={`text mb-2 ${styles.text}`}>Калории, ккал</p>
+            <p className={`text text_type_digits-default`}>{calories}</p>
+          </li>
+          <li className={styles.nutritional_value}>
+            <p className={`text mb-2 ${styles.text}`}>Белки, г</p>
+            <p className={`text text_type_digits-default`}>{proteins}</p>
+          </li>
+          <li className={styles.nutritional_value}>
+            <p className={`text mb-2 ${styles.text}`}>Жиры, г</p>
+            <p className={`text text_type_digits-default`}>{fat}</p>
+          </li>
+          <li className={styles.nutritional_value}>
+            <p className={`text mb-2 ${styles.text}`}>Углеводы, г</p>
+            <p className={`text text_type_digits-default`}>{carbohydrates}</p>
+          </li>
+        </ul>
+      </div>
+    );
+  }
+);
+
+
+=== ./src/components/feed-info/index.ts ===
+export { FeedInfo } from './feed-info';
+
+
+=== ./src/components/feed-info/feed-info.tsx ===
+import { FC } from 'react';
+
+import { TOrder } from '@utils-types';
+import { FeedInfoUI } from '../ui/feed-info';
+
+const getOrders = (orders: TOrder[], status: string): number[] =>
+  orders
+    .filter((item) => item.status === status)
+    .map((item) => item.number)
+    .slice(0, 20);
+
+export const FeedInfo: FC = () => {
+  /** TODO: взять переменные из стора */
+  const orders: TOrder[] = [];
+  const feed = {};
+
+  const readyOrders = getOrders(orders, 'done');
+
+  const pendingOrders = getOrders(orders, 'pending');
+
+  return (
+    <FeedInfoUI
+      readyOrders={readyOrders}
+      pendingOrders={pendingOrders}
+      feed={feed}
+    />
+  );
+};
+
+
+=== ./src/components/app-header/index.ts ===
+export { AppHeader } from './app-header';
+
+
+=== ./src/components/app-header/app-header.tsx ===
+import { FC } from 'react';
+import { AppHeaderUI } from '@ui';
+
+export const AppHeader: FC = () => <AppHeaderUI userName='' />;
+
+
+=== ./src/components/index.ts ===
+export * from './app-header';
+export * from './burger-constructor';
+export * from './burger-constructor-element';
+export * from './burger-ingredient';
+export * from './burger-ingredients';
+export * from './feed-info';
+export * from './ingredient-details';
+export * from './ingredients-category';
+export * from './modal';
+export * from './order-card';
+export * from './order-info';
+export * from './order-status';
+export * from './orders-list';
+export * from './profile-menu';
+
+
+=== ./src/components/order-status/index.ts ===
+export { OrderStatus } from './order-status';
+
+
+=== ./src/components/order-status/type.ts ===
+export type OrderStatusProps = {
+  status: string;
+};
+
+
+=== ./src/components/order-status/order-status.tsx ===
+import React, { FC } from 'react';
+import { OrderStatusProps } from './type';
+import { OrderStatusUI } from '@ui';
+
+const statusText: { [key: string]: string } = {
+  pending: 'Готовится',
+  done: 'Выполнен',
+  created: 'Создан'
+};
+
+export const OrderStatus: FC<OrderStatusProps> = ({ status }) => {
+  let textStyle = '';
+  switch (status) {
+    case 'pending':
+      textStyle = '#E52B1A';
+      break;
+    case 'done':
+      textStyle = '#00CCCC';
+      break;
+    default:
+      textStyle = '#F2F2F3';
+  }
+
+  return <OrderStatusUI textStyle={textStyle} text={statusText[textStyle]} />;
+};
+
+
+=== ./src/components/modal/index.ts ===
+export { Modal } from './modal';
+
+
+=== ./src/components/modal/type.ts ===
+import { ReactNode } from 'react';
+
+export type TModalProps = {
+  title: string;
+  onClose: () => void;
+  children?: ReactNode;
+};
+
+
+=== ./src/components/modal/modal.tsx ===
+import { FC, memo, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+
+import { TModalProps } from './type';
+import { ModalUI } from '@ui';
+
+const modalRoot = document.getElementById('modals');
+
+export const Modal: FC<TModalProps> = memo(({ title, onClose, children }) => {
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      e.key === 'Escape' && onClose();
+    };
+
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [onClose]);
+
+  return ReactDOM.createPortal(
+    <ModalUI title={title} onClose={onClose}>
+      {children}
+    </ModalUI>,
+    modalRoot as HTMLDivElement
+  );
+});
+
+
+=== ./src/components/burger-ingredients/index.ts ===
+export { BurgerIngredients } from './burger-ingredients';
+
+
+=== ./src/components/burger-ingredients/burger-ingredients.tsx ===
+import { useState, useRef, useEffect, FC } from 'react';
+import { useInView } from 'react-intersection-observer';
+
+import { TTabMode } from '@utils-types';
+import { BurgerIngredientsUI } from '../ui/burger-ingredients';
+
+export const BurgerIngredients: FC = () => {
+  /** TODO: взять переменные из стора */
+  const buns = [];
+  const mains = [];
+  const sauces = [];
+
+  const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
+  const titleBunRef = useRef<HTMLHeadingElement>(null);
+  const titleMainRef = useRef<HTMLHeadingElement>(null);
+  const titleSaucesRef = useRef<HTMLHeadingElement>(null);
+
+  const [bunsRef, inViewBuns] = useInView({
+    threshold: 0
+  });
+
+  const [mainsRef, inViewFilling] = useInView({
+    threshold: 0
+  });
+
+  const [saucesRef, inViewSauces] = useInView({
+    threshold: 0
+  });
+
+  useEffect(() => {
+    if (inViewBuns) {
+      setCurrentTab('bun');
+    } else if (inViewSauces) {
+      setCurrentTab('sauce');
+    } else if (inViewFilling) {
+      setCurrentTab('main');
+    }
+  }, [inViewBuns, inViewFilling, inViewSauces]);
+
+  const onTabClick = (tab: string) => {
+    setCurrentTab(tab as TTabMode);
+    if (tab === 'bun')
+      titleBunRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (tab === 'main')
+      titleMainRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (tab === 'sauce')
+      titleSaucesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return null;
+
+  return (
+    <BurgerIngredientsUI
+      currentTab={currentTab}
+      buns={buns}
+      mains={mains}
+      sauces={sauces}
+      titleBunRef={titleBunRef}
+      titleMainRef={titleMainRef}
+      titleSaucesRef={titleSaucesRef}
+      bunsRef={bunsRef}
+      mainsRef={mainsRef}
+      saucesRef={saucesRef}
+      onTabClick={onTabClick}
+    />
+  );
+};
+
+
+=== ./src/components/burger-constructor/burger-constructor.tsx ===
+import { FC, useMemo } from 'react';
+import { TConstructorIngredient } from '@utils-types';
+import { BurgerConstructorUI } from '@ui';
+
+export const BurgerConstructor: FC = () => {
+  /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
+  const constructorItems = {
+    bun: {
+      price: 0
+    },
+    ingredients: []
+  };
+
+  const orderRequest = false;
+
+  const orderModalData = null;
+
+  const onOrderClick = () => {
+    if (!constructorItems.bun || orderRequest) return;
+  };
+  const closeOrderModal = () => {};
+
+  const price = useMemo(
+    () =>
+      (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
+      constructorItems.ingredients.reduce(
+        (s: number, v: TConstructorIngredient) => s + v.price,
+        0
+      ),
+    [constructorItems]
+  );
+
+  return null;
+
+  return (
+    <BurgerConstructorUI
+      price={price}
+      orderRequest={orderRequest}
+      constructorItems={constructorItems}
+      orderModalData={orderModalData}
+      onOrderClick={onOrderClick}
+      closeOrderModal={closeOrderModal}
+    />
+  );
+};
+
+
+=== ./src/components/burger-constructor/index.ts ===
+export { BurgerConstructor } from './burger-constructor';
+
+
+=== ./src/components/profile-menu/index.ts ===
+export { ProfileMenu } from './profile-menu';
+
+
+=== ./src/components/profile-menu/profile-menu.tsx ===
+import { FC } from 'react';
+import { useLocation } from 'react-router-dom';
+import { ProfileMenuUI } from '@ui';
+
+export const ProfileMenu: FC = () => {
+  const { pathname } = useLocation();
+
+  const handleLogout = () => {};
+
+  return <ProfileMenuUI handleLogout={handleLogout} pathname={pathname} />;
+};
+
+
+=== ./src/components/burger-ingredient/index.ts ===
+export { BurgerIngredient } from './burger-ingredient';
+
+
+=== ./src/components/burger-ingredient/type.ts ===
+import { TIngredient } from '@utils-types';
+
+export type TBurgerIngredientProps = {
+  ingredient: TIngredient;
+  count: number;
+};
+
+
+=== ./src/components/burger-ingredient/burger-ingredient.tsx ===
+import { FC, memo } from 'react';
+import { useLocation } from 'react-router-dom';
+
+import { BurgerIngredientUI } from '@ui';
+import { TBurgerIngredientProps } from './type';
+
+export const BurgerIngredient: FC<TBurgerIngredientProps> = memo(
+  ({ ingredient, count }) => {
+    const location = useLocation();
+
+    const handleAdd = () => {};
+
+    return (
+      <BurgerIngredientUI
+        ingredient={ingredient}
+        count={count}
+        locationState={{ background: location }}
+        handleAdd={handleAdd}
+      />
+    );
+  }
+);
+
+
+=== ./src/components/ingredients-category/ingredients-category.tsx ===
+import { forwardRef, useMemo } from 'react';
+import { TIngredientsCategoryProps } from './type';
+import { TIngredient } from '@utils-types';
+import { IngredientsCategoryUI } from '../ui/ingredients-category';
+
+export const IngredientsCategory = forwardRef<
+  HTMLUListElement,
+  TIngredientsCategoryProps
+>(({ title, titleRef, ingredients }, ref) => {
+  /** TODO: взять переменную из стора */
+  const burgerConstructor = {
+    bun: {
+      _id: ''
+    },
+    ingredients: []
+  };
+
+  const ingredientsCounters = useMemo(() => {
+    const { bun, ingredients } = burgerConstructor;
+    const counters: { [key: string]: number } = {};
+    ingredients.forEach((ingredient: TIngredient) => {
+      if (!counters[ingredient._id]) counters[ingredient._id] = 0;
+      counters[ingredient._id]++;
+    });
+    if (bun) counters[bun._id] = 2;
+    return counters;
+  }, [burgerConstructor]);
+
+  return (
+    <IngredientsCategoryUI
+      title={title}
+      titleRef={titleRef}
+      ingredients={ingredients}
+      ingredientsCounters={ingredientsCounters}
+      ref={ref}
+    />
+  );
+});
+
+
+=== ./src/components/ingredients-category/index.ts ===
+export { IngredientsCategory } from './ingredients-category';
+
+
+=== ./src/components/ingredients-category/type.ts ===
+import { TIngredient } from '@utils-types';
+
+export type TIngredientsCategoryProps = {
+  title: string;
+  titleRef: React.RefObject<HTMLHeadingElement>;
+  ingredients: TIngredient[];
+};
+
+
+=== ./src/components/app/app.tsx ===
+import { ConstructorPage } from '@pages';
+import '../../index.css';
+import styles from './app.module.css';
+
+import { AppHeader } from '@components';
+import { Route, Routes } from 'react-router-dom';
+
+const App = () => (
+  <div className={styles.app}>
+    <AppHeader />
+    <Routes>
+      <Route path='/' element={<ConstructorPage />} />
+    </Routes>
+  </div>
+);
+
+export default App;
+
+
+=== ./src/components/app/app.module.css ===
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #131316;
+  color: #f2f2f3;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2f2f37;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid #8585ad;
+  background: #8585ad;
+}
+
+.detailPageWrap {
+  margin: 120px auto;
+}
+
+.detailHeader {
+  text-align: center;
+}
+
+
+=== ./src/components/burger-constructor-element/index.ts ===
+export { BurgerConstructorElement } from './burger-constructor-element';
+
+
+=== ./src/components/burger-constructor-element/type.ts ===
+import { TConstructorIngredient } from '@utils-types';
+
+export type BurgerConstructorElementProps = {
+  ingredient: TConstructorIngredient;
+  index: number;
+  totalItems: number;
+};
+
+
+=== ./src/components/burger-constructor-element/burger-constructor-element.tsx ===
+import { FC, memo } from 'react';
+import { BurgerConstructorElementUI } from '@ui';
+import { BurgerConstructorElementProps } from './type';
+
+export const BurgerConstructorElement: FC<BurgerConstructorElementProps> = memo(
+  ({ ingredient, index, totalItems }) => {
+    const handleMoveDown = () => {};
+
+    const handleMoveUp = () => {};
+
+    const handleClose = () => {};
+
+    return (
+      <BurgerConstructorElementUI
+        ingredient={ingredient}
+        index={index}
+        totalItems={totalItems}
+        handleMoveUp={handleMoveUp}
+        handleMoveDown={handleMoveDown}
+        handleClose={handleClose}
+      />
+    );
+  }
+);
+
+
+=== ./src/components/order-card/index.ts ===
+export { OrderCard } from './order-card';
+
+
+=== ./src/components/order-card/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type OrderCardProps = {
+  order: TOrder;
+};
+
+
+=== ./src/components/order-card/order-card.tsx ===
+import { FC, memo, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+
+import { OrderCardProps } from './type';
+import { TIngredient } from '@utils-types';
+import { OrderCardUI } from '../ui/order-card';
+
+const maxIngredients = 6;
+
+export const OrderCard: FC<OrderCardProps> = memo(({ order }) => {
+  const location = useLocation();
+
+  /** TODO: взять переменную из стора */
+  const ingredients: TIngredient[] = [];
+
+  const orderInfo = useMemo(() => {
+    if (!ingredients.length) return null;
+
+    const ingredientsInfo = order.ingredients.reduce(
+      (acc: TIngredient[], item: string) => {
+        const ingredient = ingredients.find((ing) => ing._id === item);
+        if (ingredient) return [...acc, ingredient];
+        return acc;
+      },
+      []
+    );
+
+    const total = ingredientsInfo.reduce((acc, item) => acc + item.price, 0);
+
+    const ingredientsToShow = ingredientsInfo.slice(0, maxIngredients);
+
+    const remains =
+      ingredientsInfo.length > maxIngredients
+        ? ingredientsInfo.length - maxIngredients
+        : 0;
+
+    const date = new Date(order.createdAt);
+    return {
+      ...order,
+      ingredientsInfo,
+      ingredientsToShow,
+      remains,
+      total,
+      date
+    };
+  }, [order, ingredients]);
+
+  if (!orderInfo) return null;
+
+  return (
+    <OrderCardUI
+      orderInfo={orderInfo}
+      maxIngredients={maxIngredients}
+      locationState={{ background: location }}
+    />
+  );
+});
+
+
+=== ./src/components/order-info/index.ts ===
+export { OrderInfo } from './order-info';
+
+
+=== ./src/components/order-info/order-info.tsx ===
+import { FC, useMemo } from 'react';
+import { Preloader } from '../ui/preloader';
+import { OrderInfoUI } from '../ui/order-info';
+import { TIngredient } from '@utils-types';
+
+export const OrderInfo: FC = () => {
+  /** TODO: взять переменные orderData и ingredients из стора */
+  const orderData = {
+    createdAt: '',
+    ingredients: [],
+    _id: '',
+    status: '',
+    name: '',
+    updatedAt: 'string',
+    number: 0
+  };
+
+  const ingredients: TIngredient[] = [];
+
+  /* Готовим данные для отображения */
+  const orderInfo = useMemo(() => {
+    if (!orderData || !ingredients.length) return null;
+
+    const date = new Date(orderData.createdAt);
+
+    type TIngredientsWithCount = {
+      [key: string]: TIngredient & { count: number };
+    };
+
+    const ingredientsInfo = orderData.ingredients.reduce(
+      (acc: TIngredientsWithCount, item) => {
+        if (!acc[item]) {
+          const ingredient = ingredients.find((ing) => ing._id === item);
+          if (ingredient) {
+            acc[item] = {
+              ...ingredient,
+              count: 1
+            };
+          }
+        } else {
+          acc[item].count++;
+        }
+
+        return acc;
+      },
+      {}
+    );
+
+    const total = Object.values(ingredientsInfo).reduce(
+      (acc, item) => acc + item.price * item.count,
+      0
+    );
+
+    return {
+      ...orderData,
+      ingredientsInfo,
+      date,
+      total
+    };
+  }, [orderData, ingredients]);
+
+  if (!orderInfo) {
+    return <Preloader />;
+  }
+
+  return <OrderInfoUI orderInfo={orderInfo} />;
+};
+
+
+=== ./src/components/orders-list/orders-list.tsx ===
+import { FC, memo } from 'react';
+
+import { OrdersListProps } from './type';
+import { OrdersListUI } from '@ui';
+
+export const OrdersList: FC<OrdersListProps> = memo(({ orders }) => {
+  const orderByDate = [...orders].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  return <OrdersListUI orderByDate={orderByDate} />;
+});
+
+
+=== ./src/components/orders-list/index.ts ===
+export { OrdersList } from './orders-list';
+
+
+=== ./src/components/orders-list/type.ts ===
+import { TOrder } from '@utils-types';
+
+export type OrdersListProps = {
+  orders: TOrder[];
+};
+
+
+=== ./src/components/protected-route/protected-route.tsx ===
+import { FC, ReactElement } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from '../../services/store';
+//import { getAuthChecked, getUser } from '../../services/slices/userSlice';
+
+type TProtectedRouteProps = {
+  onlyUnAuth?: boolean;
+  component: ReactElement;
+};
+
+const ProtectedRoute: FC<TProtectedRouteProps> = ({
+  onlyUnAuth = false,
+  component
+}) =>
+  // const user = useSelector(getUser);
+  // const isAuthChecked = useSelector(getAuthChecked);
+  // const location = useLocation();
+
+  // if (!isAuthChecked) {
+  //   return null;
+  // }
+
+  // if (onlyUnAuth && user) {
+  //   const from = location.state?.from || { pathname: '/' };
+  //   return <Navigate to={from} replace />;
+  // }
+
+  // if (!onlyUnAuth && !user) {
+  //   return <Navigate to='/login' state={{ from: location }} replace />;
+  // }
+
+  component;
+export const OnlyAuth = ProtectedRoute;
+export const OnlyUnAuth: FC<{ component: ReactElement }> = ({ component }) => (
+  <ProtectedRoute onlyUnAuth component={component} />
+);
+
+
+=== ./src/components/protected-route/index.ts ===
+export { OnlyAuth, OnlyUnAuth } from './protected-route';
+
+
+=== ./src/components/ingredient-details/index.ts ===
+export { IngredientDetails } from './ingredient-details';
+
+
+=== ./src/components/ingredient-details/ingredient-details.tsx ===
+import { FC } from 'react';
+import { Preloader } from '../ui/preloader';
+import { IngredientDetailsUI } from '../ui/ingredient-details';
+
+export const IngredientDetails: FC = () => {
+  /** TODO: взять переменную из стора */
+  const ingredientData = null;
+
+  if (!ingredientData) {
+    return <Preloader />;
+  }
+
+  return <IngredientDetailsUI ingredientData={ingredientData} />;
+};
+
+
+=== ./src/stories/OrderStatus.stories.tsx ===
+import React from 'react';
+import { OrderStatusUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/OrderStatus',
+  component: OrderStatusUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ width: 'fit-content', margin: 20 }}>
+        <Story />
+      </div>
+    )
+  ]
+} satisfies Meta<typeof OrderStatusUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultOrderStatus: Story = {
+  args: {
+    textStyle: '#E52B1A',
+    text: 'Готовится'
+  }
+};
+
+
+=== ./src/stories/FeedInfo.stories.ts ===
+import { FeedInfoUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/FeedInfo',
+  component: FeedInfoUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof FeedInfoUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultFeedInfo: Story = {
+  args: {
+    feed: {
+      orders: [
+        {
+          _id: '11111',
+          status: 'ready',
+          name: 'Burger',
+          createdAt: '',
+          updatedAt: '',
+          number: 123,
+          ingredients: ['Булка', 'Начинка']
+        }
+      ],
+      total: 12,
+      totalToday: 2,
+      isLoading: false,
+      error: null
+    },
+    readyOrders: [123, 124, 125],
+    pendingOrders: [126, 127]
+  }
+};
+
+
+=== ./src/stories/BurgerIngredient.stories.tsx ===
+import React from 'react';
+import { BurgerIngredientUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/BurgerIngredient',
+  component: BurgerIngredientUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ width: 'fit-content', margin: 20 }}>
+        <Story />
+      </div>
+    )
+  ]
+} satisfies Meta<typeof BurgerIngredientUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultIngredient: Story = {
+  args: {
+    ingredient: {
+      _id: '111',
+      name: 'Булка',
+      type: 'top',
+      proteins: 12,
+      fat: 33,
+      carbohydrates: 22,
+      calories: 33,
+      price: 123,
+      image: '',
+      image_large: '',
+      image_mobile: ''
+    },
+    count: 2,
+    locationState: {
+      background: {
+        hash: '',
+        key: 'eitkep27',
+        pathname: '/',
+        search: '',
+        state: null
+      }
+    },
+    handleAdd: () => {}
+  }
+};
+
+
+=== ./src/stories/IngredientDetails.stories.ts ===
+import { IngredientDetailsUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/IngredientDetails',
+  component: IngredientDetailsUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof IngredientDetailsUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultIngredientDetails: Story = {
+  args: {
+    ingredientData: {
+      _id: '111',
+      name: 'Начинка',
+      type: 'main',
+      proteins: 23,
+      fat: 34,
+      carbohydrates: 45,
+      calories: 56,
+      price: 67,
+      image: '',
+      image_large: '',
+      image_mobile: ''
+    }
+  }
+};
+
+
+=== ./src/stories/BurgerConstructorElement.stories.ts ===
+import { BurgerConstructorElementUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+import { totalmem } from 'os';
+
+const meta = {
+  title: 'Example/BurgerConstructorElement',
+  component: BurgerConstructorElementUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof BurgerConstructorElementUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultElement: Story = {
+  args: {
+    ingredient: {
+      _id: '111',
+      id: '222',
+      name: 'Булка',
+      type: 'top',
+      proteins: 12,
+      fat: 33,
+      carbohydrates: 22,
+      calories: 33,
+      price: 123,
+      image: '',
+      image_large: '',
+      image_mobile: ''
+    },
+    index: 0,
+    totalItems: 1,
+    handleMoveUp: () => {},
+    handleMoveDown: () => {},
+    handleClose: () => {}
+  }
+};
+
+
+=== ./src/stories/OrderCard.stories.ts ===
+import { OrderCardUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/OrderCard',
+  component: OrderCardUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof OrderCardUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultOrderCard: Story = {
+  args: {
+    orderInfo: {
+      ingredientsInfo: [
+        {
+          _id: '111',
+          name: 'Булка',
+          type: 'top',
+          proteins: 12,
+          fat: 33,
+          carbohydrates: 22,
+          calories: 33,
+          price: 123,
+          image: '',
+          image_large: '',
+          image_mobile: ''
+        }
+      ],
+      ingredientsToShow: [
+        {
+          _id: '111',
+          name: 'Булка',
+          type: 'top',
+          proteins: 12,
+          fat: 33,
+          carbohydrates: 22,
+          calories: 33,
+          price: 123,
+          image: '',
+          image_large: '',
+          image_mobile: ''
+        },
+        {
+          _id: '111',
+          name: 'Начинка',
+          type: 'top',
+          proteins: 12,
+          fat: 33,
+          carbohydrates: 22,
+          calories: 33,
+          price: 123,
+          image: '',
+          image_large: '',
+          image_mobile: ''
+        }
+      ],
+      remains: 2,
+      total: 2,
+      date: new Date('2024-01-25'),
+      _id: '32',
+      status: 'ready',
+      name: 'Начинка',
+      createdAt: '',
+      updatedAt: '',
+      number: 3,
+      ingredients: ['Булка', 'Начинка']
+    },
+    maxIngredients: 5,
+    locationState: {
+      background: {
+        hash: '',
+        key: 'eitkep27',
+        pathname: '/',
+        search: '',
+        state: null
+      }
+    }
+  }
+};
+
+
+=== ./src/stories/OrderInfo.stories.ts ===
+import { OrderInfoUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/OrderInfo',
+  component: OrderInfoUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof OrderInfoUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultOrderInfo: Story = {
+  args: {
+    orderInfo: {
+      ingredientsInfo: {
+        bun: {
+          _id: '211',
+          name: 'Булка',
+          type: 'bun',
+          proteins: 12,
+          fat: 23,
+          carbohydrates: 45,
+          calories: 56,
+          price: 67,
+          image: '',
+          image_large: '',
+          image_mobile: '',
+          count: 2
+        }
+      },
+      date: new Date('2024-01-25'),
+      total: 134,
+      _id: '233',
+      status: 'ready',
+      name: 'Order',
+      createdAt: '',
+      updatedAt: '',
+      number: 2,
+      ingredients: ['Булка', 'Начинка']
+    }
+  }
+};
+
+
+=== ./src/stories/ProfileMenu.stories.ts ===
+import { ProfileMenuUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/ProfileMenu',
+  component: ProfileMenuUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof ProfileMenuUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultProfileMenu: Story = {
+  args: {
+    pathname: '/profile',
+    handleLogout: () => {}
+  }
+};
+
+
+=== ./src/stories/Preloader.stories.ts ===
+import { Preloader } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/Preloader',
+  component: Preloader,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof Preloader>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultPreloader: Story = {
+  args: {}
+};
+
+
+=== ./src/stories/BurgerConstructor.stories.ts ===
+import { BurgerConstructorUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/BurgerConstructor',
+  component: BurgerConstructorUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof BurgerConstructorUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultConstructor: Story = {
+  args: {
+    constructorItems: { bun: null, ingredients: [] },
+    orderRequest: false,
+    price: 0,
+    orderModalData: null,
+    onOrderClick: () => {},
+    closeOrderModal: () => {}
+  }
+};
+
+
+=== ./src/stories/Header.stories.ts ===
+import type { Meta, StoryObj } from '@storybook/react';
+
+import { AppHeaderUI } from '@ui';
+
+const meta = {
+  title: 'Example/Header',
+  component: AppHeaderUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  }
+} satisfies Meta<typeof AppHeaderUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const LoggedIn: Story = {
+  args: {
+    userName: 'John Doe'
+  }
+};
+
+export const LoggedOut: Story = {
+  args: {
+    userName: undefined
+  }
+};
+
+
+=== ./src/stories/OrderDetails.stories.tsx ===
+import React from 'react';
+import { OrderDetailsUI } from '@ui';
+import type { Meta, StoryObj } from '@storybook/react';
+
+const meta = {
+  title: 'Example/OrderDetails',
+  component: OrderDetailsUI,
+  // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
+  tags: ['autodocs'],
+  parameters: {
+    // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
+    layout: 'fullscreen'
+  },
+  decorators: [
+    (Story) => (
+      <div
+        style={{
+          width: 'fit-content',
+          margin: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
+        <Story />
+      </div>
+    )
+  ]
+} satisfies Meta<typeof OrderDetailsUI>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const DefaultOrderDetails: Story = {
+  args: {
+    orderNumber: 12
+  }
+};
+
+
+=== ./src/services/store.ts ===
+import { configureStore } from '@reduxjs/toolkit';
+
+import {
+  TypedUseSelectorHook,
+  useDispatch as dispatchHook,
+  useSelector as selectorHook
+} from 'react-redux';
+
+const rootReducer = () => {}; // Заменить на импорт настоящего редьюсера
+
+const store = configureStore({
+  reducer: rootReducer,
+  devTools: process.env.NODE_ENV !== 'production'
+});
+
+export type RootState = ReturnType<typeof rootReducer>;
+
+export type AppDispatch = typeof store.dispatch;
+
+export const useDispatch = dispatchHook.withTypes<AppDispatch>();
+export const useSelector = selectorHook.withTypes<RootState>();
+
+export default store;
+
+
+=== ./src/services/slices/userSlice.ts ===
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { TUser } from '../../utils/types';
+
+type TUserState = {
+  user: TUser | null;
+  isAuthChecked: boolean;
+  loading: boolean;
+  error: string | null;
+};
+
+const getAuthChecked = null;
+const getUser = null;
+
+
+=== ./src/utils/cookie.ts ===
+export function getCookie(name: string): string | undefined {
+  const matches = document.cookie.match(
+    new RegExp(
+      '(?:^|; )' +
+        // eslint-disable-next-line no-useless-escape
+        name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') +
+        '=([^;]*)'
+    )
+  );
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+export function setCookie(
+  name: string,
+  value: string,
+  props: { [key: string]: string | number | Date | boolean } = {}
+) {
+  props = {
+    path: '/',
+    ...props
+  };
+
+  let exp = props.expires;
+  if (exp && typeof exp === 'number') {
+    const d = new Date();
+    d.setTime(d.getTime() + exp * 1000);
+    exp = props.expires = d;
+  }
+
+  if (exp && exp instanceof Date) {
+    props.expires = exp.toUTCString();
+  }
+  value = encodeURIComponent(value);
+  let updatedCookie = name + '=' + value;
+  for (const propName in props) {
+    updatedCookie += '; ' + propName;
+    const propValue = props[propName];
+    if (propValue !== true) {
+      updatedCookie += '=' + propValue;
+    }
+  }
+  document.cookie = updatedCookie;
+}
+
+export function deleteCookie(name: string) {
+  setCookie(name, '', { expires: -1 });
+}
+
+
+=== ./src/utils/types.ts ===
+export type TIngredient = {
+  _id: string;
+  name: string;
+  type: string;
+  proteins: number;
+  fat: number;
+  carbohydrates: number;
+  calories: number;
+  price: number;
+  image: string;
+  image_large: string;
+  image_mobile: string;
+};
+
+export type TConstructorIngredient = TIngredient & {
+  id: string;
+};
+
+export type TOrder = {
+  _id: string;
+  status: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  number: number;
+  ingredients: string[];
+};
+
+export type TOrdersData = {
+  orders: TOrder[];
+  total: number;
+  totalToday: number;
+};
+
+export type TUser = {
+  email: string;
+  name: string;
+};
+
+export type TTabMode = 'bun' | 'sauce' | 'main';
+
+
+=== ./src/utils/burger-api.ts ===
+import { setCookie, getCookie } from './cookie';
+import { TIngredient, TOrder, TOrdersData, TUser } from './types';
+
+const URL = process.env.BURGER_API_URL;
+
+const checkResponse = <T>(res: Response): Promise<T> =>
+  res.ok ? res.json() : res.json().then((err) => Promise.reject(err));
+
+type TServerResponse<T> = {
+  success: boolean;
+} & T;
+
+type TRefreshResponse = TServerResponse<{
+  refreshToken: string;
+  accessToken: string;
+}>;
+
+export const refreshToken = (): Promise<TRefreshResponse> =>
+  fetch(`${URL}/auth/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify({
+      token: localStorage.getItem('refreshToken')
+    })
+  })
+    .then((res) => checkResponse<TRefreshResponse>(res))
+    .then((refreshData) => {
+      if (!refreshData.success) {
+        return Promise.reject(refreshData);
+      }
+      localStorage.setItem('refreshToken', refreshData.refreshToken);
+      setCookie('accessToken', refreshData.accessToken);
+      return refreshData;
+    });
+
+export const fetchWithRefresh = async <T>(
+  url: RequestInfo,
+  options: RequestInit
+) => {
+  try {
+    const res = await fetch(url, options);
+    return await checkResponse<T>(res);
+  } catch (err) {
+    if ((err as { message: string }).message === 'jwt expired') {
+      const refreshData = await refreshToken();
+      if (options.headers) {
+        (options.headers as { [key: string]: string }).authorization =
+          refreshData.accessToken;
+      }
+      const res = await fetch(url, options);
+      return await checkResponse<T>(res);
+    } else {
+      return Promise.reject(err);
+    }
+  }
+};
+
+type TIngredientsResponse = TServerResponse<{
+  data: TIngredient[];
+}>;
+
+type TFeedsResponse = TServerResponse<{
+  orders: TOrder[];
+  total: number;
+  totalToday: number;
+}>;
+
+type TOrdersResponse = TServerResponse<{
+  data: TOrder[];
+}>;
+
+export const getIngredientsApi = () =>
+  fetch(`${URL}/ingredients`)
+    .then((res) => checkResponse<TIngredientsResponse>(res))
+    .then((data) => {
+      if (data?.success) return data.data;
+      return Promise.reject(data);
+    });
+
+export const getFeedsApi = () =>
+  fetch(`${URL}/orders/all`)
+    .then((res) => checkResponse<TFeedsResponse>(res))
+    .then((data) => {
+      if (data?.success) return data;
+      return Promise.reject(data);
+    });
+
+export const getOrdersApi = () =>
+  fetchWithRefresh<TFeedsResponse>(`${URL}/orders`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      authorization: getCookie('accessToken')
+    } as HeadersInit
+  }).then((data) => {
+    if (data?.success) return data.orders;
+    return Promise.reject(data);
+  });
+
+type TNewOrderResponse = TServerResponse<{
+  order: TOrder;
+  name: string;
+}>;
+
+export const orderBurgerApi = (data: string[]) =>
+  fetchWithRefresh<TNewOrderResponse>(`${URL}/orders`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      authorization: getCookie('accessToken')
+    } as HeadersInit,
+    body: JSON.stringify({
+      ingredients: data
+    })
+  }).then((data) => {
+    if (data?.success) return data;
+    return Promise.reject(data);
+  });
+
+type TOrderResponse = TServerResponse<{
+  orders: TOrder[];
+}>;
+
+export const getOrderByNumberApi = (number: number) =>
+  fetch(`${URL}/orders/${number}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then((res) => checkResponse<TOrderResponse>(res));
+
+export type TRegisterData = {
+  email: string;
+  name: string;
+  password: string;
+};
+
+type TAuthResponse = TServerResponse<{
+  refreshToken: string;
+  accessToken: string;
+  user: TUser;
+}>;
+
+export const registerUserApi = (data: TRegisterData) =>
+  fetch(`${URL}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data)
+  })
+    .then((res) => checkResponse<TAuthResponse>(res))
+    .then((data) => {
+      if (data?.success) return data;
+      return Promise.reject(data);
+    });
+
+export type TLoginData = {
+  email: string;
+  password: string;
+};
+
+export const loginUserApi = (data: TLoginData) =>
+  fetch(`${URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data)
+  })
+    .then((res) => checkResponse<TAuthResponse>(res))
+    .then((data) => {
+      if (data?.success) return data;
+      return Promise.reject(data);
+    });
+
+export const forgotPasswordApi = (data: { email: string }) =>
+  fetch(`${URL}/password-reset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data)
+  })
+    .then((res) => checkResponse<TServerResponse<{}>>(res))
+    .then((data) => {
+      if (data?.success) return data;
+      return Promise.reject(data);
+    });
+
+export const resetPasswordApi = (data: { password: string; token: string }) =>
+  fetch(`${URL}/password-reset/reset`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(data)
+  })
+    .then((res) => checkResponse<TServerResponse<{}>>(res))
+    .then((data) => {
+      if (data?.success) return data;
+      return Promise.reject(data);
+    });
+
+type TUserResponse = TServerResponse<{ user: TUser }>;
+
+export const getUserApi = () =>
+  fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, {
+    headers: {
+      authorization: getCookie('accessToken')
+    } as HeadersInit
+  });
+
+export const updateUserApi = (user: Partial<TRegisterData>) =>
+  fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8',
+      authorization: getCookie('accessToken')
+    } as HeadersInit,
+    body: JSON.stringify(user)
+  });
+
+export const logoutApi = () =>
+  fetch(`${URL}/auth/logout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify({
+      token: localStorage.getItem('refreshToken')
+    })
+  }).then((res) => checkResponse<TServerResponse<{}>>(res));
+
+
+=== ./src/global.d.ts ===
+import 'react';
+
+declare module 'react' {
+  interface HTMLAttributes<T> {
+    onPointerEnterCapture?: (e: React.PointerEvent<T>) => void;
+    onPointerLeaveCapture?: (e: React.PointerEvent<T>) => void;
+  }
+
+  interface RefAttributes<T> {
+    onPointerEnterCapture?: (e: React.PointerEvent<T>) => void;
+    onPointerLeaveCapture?: (e: React.PointerEvent<T>) => void;
+  }
+}
+
+
+=== ./src/styles.d.ts ===
+declare module '*.module.css' {
+  const classes: { [key: string]: string };
+  export default classes;
+}
+
+
+=== ./src/index.css ===
+body {
+  margin: 0;
+}
+
+
+=== ./src/svg.d.ts ===
+declare module '*.svg' {
+  const content: string;
+  export default content;
+}
+
+
+=== ./src/index.tsx ===
+import React from 'react';
+import * as ReactDOMClient from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { BrowserRouter } from 'react-router-dom';
+import App from './components/app/app';
+import store from './services/store';
+import './index.css';
+
+const container = document.getElementById('root') as HTMLElement;
+const root = ReactDOMClient.createRoot(container!);
+
+root.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </Provider>
+  </React.StrictMode>
+);
+
+
