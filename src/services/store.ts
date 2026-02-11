@@ -5,10 +5,13 @@ import {
   useSelector as selectorHook
 } from 'react-redux';
 import ingredientsReducer from './slices/ingredientsSlice';
+import constructorReducer from './slices/constructorSlice';
+import { BurgerConstructor } from '@components';
 
 export const store = configureStore({
   reducer: {
-    ingredients: ingredientsReducer
+    ingredients: ingredientsReducer,
+    burgerConstructor: constructorReducer
   },
   devTools: process.env.NODE_ENV !== 'production'
 });
