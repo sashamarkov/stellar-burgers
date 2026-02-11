@@ -21,7 +21,9 @@ const initialState: TFeedState = {
 export const fetchFeeds = createAsyncThunk<TOrdersData>(
   'feed/fetchAll',
   async () => {
+    console.log('Fetching feeds...');
     const response = await getFeedsApi();
+    console.log('Feeds response:', response);
     return response;
   }
 );

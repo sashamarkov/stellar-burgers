@@ -21,12 +21,17 @@ import { fetchIngredients } from '../../services/slices/ingredientsSlice';
 import '../../index.css';
 import styles from './app.module.css';
 import { AppHeader } from '@components';
+import { checkUserAuth } from '../../services/slices/userSlice';
 
 const App = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const background = location.state?.background;
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(checkUserAuth());
+  }, [dispatch]);
 
   // Получаем ингредиенты при старте...
   useEffect(() => {

@@ -15,6 +15,7 @@ export const Feed: FC = () => {
   }, [dispatch]);
 
   const handleGetFeeds = () => {
+    console.log('Refresh clicked');
     dispatch(fetchFeeds());
   };
 
@@ -22,5 +23,7 @@ export const Feed: FC = () => {
     return <Preloader />;
   }
 
-  return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
+  return (
+    <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} loading={loading} />
+  );
 };

@@ -1,6 +1,7 @@
 import { FC, ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from '../../services/store';
+import { Preloader } from '@ui';
 
 type TProtectedRouteProps = {
   onlyUnAuth?: boolean;
@@ -11,14 +12,12 @@ export const ProtectedRoute: FC<TProtectedRouteProps> = ({
   onlyUnAuth = false,
   component
 }) => {
-  const isAuthChecked = useSelector(
-    (state) => state.user?.isAuthChecked ?? false
-  );
-  const user = useSelector((state) => state.user?.user);
+  const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
+  const user = useSelector((state) => state.user.user);
   const location = useLocation();
 
   if (!isAuthChecked) {
-    return null;
+    return <Preloader />;
   }
 
   if (onlyUnAuth && user) {
