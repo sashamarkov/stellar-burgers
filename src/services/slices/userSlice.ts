@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { TUser } from '../../utils/types';
 
 type TUserState = {
@@ -8,5 +8,18 @@ type TUserState = {
   error: string | null;
 };
 
-const getAuthChecked = null;
-const getUser = null;
+const initialState: TUserState = {
+  user: null,
+  isAuthChecked: true,
+  loading: false,
+  error: null
+};
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {},
+  extraReducers: () => {}
+});
+
+export default userSlice.reducer;

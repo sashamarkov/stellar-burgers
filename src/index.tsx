@@ -6,6 +6,7 @@ import App from './components/app/app';
 import store from './services/store';
 import './index.css';
 
+window.store = store;
 const container = document.getElementById('root') as HTMLElement;
 const root = ReactDOMClient.createRoot(container!);
 

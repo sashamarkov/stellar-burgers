@@ -77,3 +77,40 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
     </Link>
   )
 );
+
+/* import { FC, memo } from 'react';
+import { useLocation } from 'react-router-dom';
+import { OrderCardUIProps } from './type';
+
+export const OrderCardUI: FC<OrderCardUIProps> = memo(({ orderInfo }) => {
+  const location = useLocation();
+
+  return (
+    <div
+      style={{
+        border: '1px solid #4c4cff',
+        borderRadius: '40px',
+        padding: '20px',
+        margin: '10px 0',
+        background: '#1c1c21'
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ color: '#f2f2f3' }}>#{orderInfo.number}</span>
+        <span style={{ color: '#8585ad' }}>
+          {new Date(orderInfo.createdAt).toLocaleDateString()}
+        </span>
+      </div>
+      <h3 style={{ color: '#f2f2f3', margin: '10px 0' }}>{orderInfo.name}</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ color: '#00cccc' }}>
+          {orderInfo.status === 'done' ? 'Выполнен' : 'Готовится'}
+        </span>
+        <span style={{ color: '#f2f2f3' }}>
+          {orderInfo.ingredients.length} ингредиентов
+        </span>
+      </div>
+    </div>
+  );
+});
+ */
