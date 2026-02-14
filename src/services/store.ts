@@ -10,6 +10,7 @@ import orderReducer from './slices/orderSlice';
 import feedReducer from './slices/feedSlice';
 import userReducer from './slices/userSlice';
 import orderByNumberReducer from './slices/orderByNumberSlice';
+import ordersReducer from './slices/ordersSlice';
 import { BurgerConstructor } from '@components';
 
 export const store = configureStore({
@@ -19,7 +20,8 @@ export const store = configureStore({
     order: orderReducer,
     feed: feedReducer,
     user: userReducer,
-    orderByNumber: orderByNumberReducer
+    orderByNumber: orderByNumberReducer,
+    orders: ordersReducer
   },
   devTools: process.env.NODE_ENV !== 'production'
 });

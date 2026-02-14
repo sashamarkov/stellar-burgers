@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getIngredientsApi } from '../../utils/burger-api';
 import { TIngredient } from '../../utils/types';
+import { RootState } from '../store';
 
 type TIngredientsState = {
   ingredients: TIngredient[];
@@ -14,14 +15,22 @@ const initialState: TIngredientsState = {
   error: null
 };
 
-export const fetchIngredients = createAsyncThunk<TIngredient[]>(
-  'ingredients/fetchAll',
+export const fetchIngredients = createAsyncThunk(
+  'ingredients/getIngredients',
   async () => {
-    const response = await getIngredientsApi();
-    return response;
+    const data = await getIngredientsApi();
+    return data;
+  },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as RootState;
+      // Не загружаем, если уже загружены
+      if (state.ingredients.ingredients.length > 0) {
+        return false;
+      }
+    }
   }
 );
-
 const ingredientsSlice = createSlice({
   name: 'ingredients',
   initialState,

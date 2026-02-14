@@ -14,7 +14,7 @@ export const FeedUI: FC<FeedUIProps> = memo(
           Лента заказов
         </h1>
         <RefreshButton
-          text={loading ? 'Обновление...' : 'Обновить'}
+          text={'Обновить'} //{loading ? 'Обновление...' : 'Обновить'}
           onClick={handleGetFeeds}
           extraClass={'ml-30'}
         />

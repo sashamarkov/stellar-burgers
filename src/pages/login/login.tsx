@@ -1,5 +1,5 @@
 import { FC, SyntheticEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from '../../services/store';
 import { login } from '../../services/slices/userSlice';
 import { LoginUI } from '@ui-pages';
@@ -10,6 +10,8 @@ export const Login: FC = () => {
   const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export const Login: FC = () => {
       .unwrap()
       .then((user) => {
         console.log('Login success:', user);
-        navigate('/');
+        navigate(from, { replace: true });
       })
       .catch((err) => {
         console.error('Login error:', err);

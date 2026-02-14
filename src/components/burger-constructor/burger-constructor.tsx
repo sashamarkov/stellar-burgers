@@ -12,11 +12,17 @@ export const BurgerConstructor: FC = () => {
 
   const constructorItems = useSelector((state) => state.burgerConstructor);
   const { orderRequest, orderModalData } = useSelector((state) => state.order);
+  const user = useSelector((state) => state.user.user);
 
   const onOrderClick = () => {
     if (!constructorItems.bun || orderRequest) {
       return;
     }
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     const ingredientsIds = [
       constructorItems.bun._id,
       ...constructorItems.ingredients.map((item) => item._id),

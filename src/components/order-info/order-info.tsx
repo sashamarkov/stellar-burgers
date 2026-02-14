@@ -28,16 +28,6 @@ export const OrderInfo: FC = () => {
     };
   }, [dispatch, number]);
 
-  useEffect(() => {
-    if (orderData && isModal) {
-      // Находим элемент заголовка модалки и обновляем его
-      const modalTitle = document.querySelector('.modal_title');
-      if (modalTitle) {
-        modalTitle.textContent = `#${String(orderData.number).padStart(6, '0')}`;
-      }
-    }
-  }, [orderData, isModal]);
-
   const orderInfo = useMemo(() => {
     if (!orderData || !ingredients.length) return null;
 
@@ -82,5 +72,5 @@ export const OrderInfo: FC = () => {
     return <Preloader />;
   }
 
-  return <OrderInfoUI orderInfo={orderInfo} />;
+  return <OrderInfoUI orderInfo={orderInfo} isModal={isModal} />;
 };
