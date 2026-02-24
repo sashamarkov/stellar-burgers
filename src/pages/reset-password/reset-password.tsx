@@ -1,25 +1,21 @@
-import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { FC, useEffect, useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { resetPasswordApi } from '@api';
+import { useDispatch } from '../../services/store';
+import { resetPassword } from '../../services/slices/userSlice';
 import { ResetPasswordUI } from '@ui-pages';
+import { useForm } from '../../hooks/useForm';
 
 export const ResetPassword: FC = () => {
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [token, setToken] = useState('');
+  const dispatch = useDispatch();
   const [error, setError] = useState<Error | null>(null);
 
-  const handleSubmit = (e: SyntheticEvent) => {
-    e.preventDefault();
-    setError(null);
-    resetPasswordApi({ password, token })
-      .then(() => {
-        localStorage.removeItem('resetPassword');
-        navigate('/login');
-      })
-      .catch((err) => setError(err));
-  };
+  const { values, handleChange } = useForm({
+    password: '',
+    token: ''
+  });
+
+  const { password, token } = values;
 
   useEffect(() => {
     if (!localStorage.getItem('resetPassword')) {
@@ -27,13 +23,24 @@ export const ResetPassword: FC = () => {
     }
   }, [navigate]);
 
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    dispatch(resetPassword({ password, token }))
+      .unwrap()
+      .then(() => {
+        localStorage.removeItem('resetPassword');
+        navigate('/login');
+      })
+      .catch((err) => setError(err));
+  };
+
   return (
     <ResetPasswordUI
       errorText={error?.message}
       password={password}
       token={token}
-      setPassword={setPassword}
-      setToken={setToken}
+      handleChange={handleChange}
       handleSubmit={handleSubmit}
     />
   );
