@@ -8,7 +8,7 @@ type TOrderByNumberState = {
   error: string | null;
 };
 
-const initialState: TOrderByNumberState = {
+export const initialState: TOrderByNumberState = {
   order: null,
   loading: false,
   error: null
@@ -40,6 +40,7 @@ const orderByNumberSlice = createSlice({
       .addCase(fetchOrderByNumber.fulfilled, (state, action) => {
         state.loading = false;
         state.order = action.payload;
+        state.error = null;
       })
       .addCase(fetchOrderByNumber.rejected, (state, action) => {
         state.loading = false;

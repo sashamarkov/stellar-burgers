@@ -20,7 +20,7 @@ type TUserState = {
   error: string | null;
 };
 
-const initialState: TUserState = {
+export const initialState: TUserState = {
   user: null,
   isAuthChecked: false,
   loading: false,
@@ -115,7 +115,6 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Register
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -129,7 +128,6 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Ошибка регистрации';
       })
-      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -138,16 +136,15 @@ const userSlice = createSlice({
         state.loading = false;
         state.user = action.payload;
         state.isAuthChecked = true;
+        state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Ошибка входа';
       })
-      // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
       })
-      // Get user
       .addCase(getUser.pending, (state) => {
         state.loading = true;
       })
@@ -161,7 +158,6 @@ const userSlice = createSlice({
         state.user = null;
         state.isAuthChecked = true;
       })
-      // Update user
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;

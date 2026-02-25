@@ -8,7 +8,7 @@ type TOrderState = {
   error: string | null;
 };
 
-const initialState: TOrderState = {
+export const initialState: TOrderState = {
   orderRequest: false,
   orderModalData: null,
   error: null
@@ -40,6 +40,7 @@ const orderSlice = createSlice({
       .addCase(postOrder.fulfilled, (state, action) => {
         state.orderRequest = false;
         state.orderModalData = action.payload;
+        state.error = null;
       })
       .addCase(postOrder.rejected, (state, action) => {
         state.orderRequest = false;
