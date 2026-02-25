@@ -41,14 +41,11 @@ export const login = createAsyncThunk(
   'user/login',
   async (data: TLoginData, { rejectWithValue }) => {
     try {
-      console.log('Sending login request:', data);
       const response = await loginUserApi(data);
-      console.log('Login response:', response);
       setCookie('accessToken', response.accessToken);
       localStorage.setItem('refreshToken', response.refreshToken);
       return response.user;
     } catch (error) {
-      console.error('Login API error:', error);
       return rejectWithValue(error);
     }
   }

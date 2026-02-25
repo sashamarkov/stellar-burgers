@@ -202,7 +202,6 @@ describe('orderByNumberSlice', () => {
     });
 
     it('должен корректно обрабатывать успешный ответ API', async () => {
-      // Мокаем возврат правильной структуры от API
       (getOrderByNumberApi as jest.Mock).mockResolvedValue({
         orders: [MOCK_ORDER]
       });
@@ -214,10 +213,7 @@ describe('orderByNumberSlice', () => {
         undefined
       );
 
-      // Проверяем тип результата
       expect(fetchOrderByNumber.fulfilled.match(result)).toBe(true);
-
-      // Если это успешный результат, проверяем payload
       if (fetchOrderByNumber.fulfilled.match(result)) {
         expect(result.payload).toEqual(MOCK_ORDER);
       }
