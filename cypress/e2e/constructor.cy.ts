@@ -2,67 +2,172 @@
 
 import ingredients from '../../__mocks__/ingredients.json';
 
+const BUN = ingredients.find((item) => item.type === 'bun');
+const MAIN = ingredients.find((item) => item.type === 'main');
+const SAUCE = ingredients.find((item) => item.type === 'sauce');
+const DELAY_MS = 500;
+if (!BUN || !MAIN || !SAUCE) {
+  throw new Error(
+    "Не все типы ингредиентов найдены в JSON. Проверьте '../../__mocks__/ingredients.json'"
+  );
+}
+
 describe('Конструктор бургера', () => {
   beforeEach(() => {
-    cy.intercept('GET', 'https://norma.education-services.ru/api/ingredients', {
-      statusCode: 200,
-      body: {
-        success: true,
-        data: ingredients
-      }
-    }).as('getIngredients');
-
+    cy.interceptIngredients();
     cy.visit('/');
     cy.wait('@getIngredients');
   });
 
-  describe('Добавление ингредиентов', () => {
-    it('Должен добавлять булку в конструктор', function () {
-      cy.get('[data-test-id="ingredient-bun1"] button').click();
-      cy.contains('Краторная булка N-200i (верх)').should('exist');
-      cy.contains('Краторная булка N-200i (низ)').should('exist');
+  afterEach(() => {
+    cy.wait(DELAY_MS);
+  });
+
+  describe('Проверка всех ингредиентов', () => {
+    it('Должен отображать все ингредиенты из JSON', () => {
+      ingredients.forEach((ingredient) => {
+        cy.get(`[data-test-id="ingredient-${ingredient._id}"]`).should('exist');
+        cy.get(`[data-test-id="ingredient-${ingredient._id}"]`).contains(
+          ingredient.name
+        );
+        cy.get(`[data-test-id="ingredient-${ingredient._id}"]`).contains(
+          ingredient.price
+        );
+      });
+    });
+  });
+
+  describe('Добавление, перемещение, удаление ингредиентов', () => {
+    it('Должен добавлять булку в конструктор', () => {
+      cy.addIngredient(BUN._id);
+      cy.contains(`${BUN.name} (верх)`).should('exist');
+      cy.contains(`${BUN.name} (низ)`).should('exist');
     });
 
-    it('Должен добавлять начинку в конструктор', function () {
-      cy.get('[data-test-id="ingredient-main1"] button').click();
-      cy.contains('Мясо бессмертных моллюсков Protostomia').should('exist');
+    it('Должен добавлять начинку в конструктор', () => {
+      cy.addIngredient(MAIN._id);
+      cy.contains(MAIN.name).should('exist');
     });
 
-    it('Должен добавлять соус в конструктор', function () {
-      cy.get('[data-test-id="ingredient-sauce1"] button').click();
-      cy.contains('Соус Spicy-X').should('exist');
+    it('Должен добавлять соус в конструктор', () => {
+      cy.addIngredient(SAUCE._id);
+      cy.contains(SAUCE.name).should('exist');
+    });
+
+    it('Должен перемещать начинку вниз', () => {
+      cy.addIngredient(MAIN._id);
+      cy.addIngredient(SAUCE._id);
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .within(() => {
+          cy.get('button.move_button').eq(1).click();
+        });
+
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .should('contain', SAUCE.name);
+      cy.get('[data-test-id^="constructor-item-"]')
+        .last()
+        .should('contain', MAIN.name);
+    });
+
+    it('Должен перемещать начинку вверх', () => {
+      cy.addIngredient(MAIN._id);
+      cy.addIngredient(SAUCE._id);
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .eq(1)
+        .within(() => {
+          cy.get('button.move_button').first().click();
+        });
+
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .should('contain', SAUCE.name);
+      cy.get('[data-test-id^="constructor-item-"]')
+        .last()
+        .should('contain', MAIN.name);
+    });
+
+    it('Должен удалять начинку из конструктора', () => {
+      cy.addIngredient(MAIN._id);
+      cy.addIngredient(SAUCE._id);
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]').should('have.length', 2);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .within(() => {
+          cy.get('.constructor-element__action').click();
+        });
+
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]').should('have.length', 1);
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .should('contain', SAUCE.name);
+      cy.get('[data-test-id^="constructor-item-"]').should(
+        'not.contain',
+        MAIN.name
+      );
+    });
+
+    it('Должен удалять соус из конструктора', () => {
+      cy.addIngredient(MAIN._id);
+      cy.addIngredient(SAUCE._id);
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]')
+        .eq(1)
+        .within(() => {
+          cy.get('.constructor-element__action').click();
+        });
+
+      cy.wait(500);
+
+      cy.get('[data-test-id^="constructor-item-"]').should('have.length', 1);
+      cy.get('[data-test-id^="constructor-item-"]')
+        .first()
+        .should('contain', MAIN.name);
+      cy.get('[data-test-id^="constructor-item-"]').should(
+        'not.contain',
+        SAUCE.name
+      );
     });
   });
 
   describe('Модальное окно ингредиента', () => {
-    it('Должен открывать модальное окно при клике на ингредиент', function () {
-      cy.get('[data-test-id="ingredient-bun1"] a').click();
-      cy.url().should('include', '/ingredients/bun1');
+    it('Должен открывать модальное окно при клике на ингредиент', () => {
+      cy.clickIngredientLink(BUN._id);
+      cy.url().should('include', `/ingredients/${BUN._id}`);
       cy.contains('Детали ингредиента').should('be.visible');
-      cy.contains('Краторная булка N-200i').should('be.visible');
+      cy.contains(BUN.name).should('be.visible');
     });
 
-    it('Должен отображать правильные данные ингредиента в модалке', function () {
-      cy.get('[data-test-id="ingredient-bun1"] a').click();
-      cy.contains('Детали ингредиента').should('be.visible');
-      cy.contains('Калории, ккал').parent().contains('420');
-      cy.contains('Белки, г').parent().contains('80');
-      cy.contains('Жиры, г').parent().contains('24');
-      cy.contains('Углеводы, г').parent().contains('53');
+    it('Должен отображать правильные данные ингредиента в модалке', () => {
+      cy.clickIngredientLink(BUN._id);
+      cy.checkIngredientDetails(BUN);
     });
 
-    it('Должен закрывать модальное окно по клику на крестик', function () {
-      cy.get('[data-test-id="ingredient-bun1"] a').click();
+    it('Должен закрывать модальное окно по клику на крестик', () => {
+      cy.clickIngredientLink(BUN._id);
       cy.contains('Детали ингредиента').should('be.visible');
-
-      cy.get('[data-test-id="modal-close"]').click();
+      cy.closeModal();
       cy.contains('Детали ингредиента').should('not.exist');
     });
 
-    it('Должен закрывать модальное окно по клику на оверлей', function () {
-      cy.get('[data-test-id="ingredient-bun1"] a').click();
+    it('Должен закрывать модальное окно по клику на оверлей', () => {
+      cy.clickIngredientLink(BUN._id);
       cy.contains('Детали ингредиента').should('be.visible');
-
       cy.get('[data-test-id="modal-overlay"]').click({ force: true });
       cy.contains('Детали ингредиента').should('not.exist');
     });

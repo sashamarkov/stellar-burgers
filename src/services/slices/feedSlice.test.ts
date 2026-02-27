@@ -93,8 +93,8 @@ describe('feedSlice', () => {
             number: 99999,
             status: 'done',
             name: 'Новый заказ',
-            createdAt: '2024-02-02T00:00:00.000Z',
-            updatedAt: '2024-02-02T00:00:00.000Z',
+            createdAt: '2026-02-02T00:00:00.000Z',
+            updatedAt: '2026-02-02T00:00:00.000Z',
             ingredients: ['bun1', 'main1']
           }
         ],
