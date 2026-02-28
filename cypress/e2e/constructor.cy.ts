@@ -5,7 +5,6 @@ import ingredients from '../../__mocks__/ingredients.json';
 const BUN = ingredients.find((item) => item.type === 'bun');
 const MAIN = ingredients.find((item) => item.type === 'main');
 const SAUCE = ingredients.find((item) => item.type === 'sauce');
-const DELAY_MS = 500;
 if (!BUN || !MAIN || !SAUCE) {
   throw new Error(
     "Не все типы ингредиентов найдены в JSON. Проверьте '../../__mocks__/ingredients.json'"
@@ -17,10 +16,6 @@ describe('Конструктор бургера', () => {
     cy.interceptIngredients();
     cy.visit('/');
     cy.wait('@getIngredients');
-  });
-
-  afterEach(() => {
-    cy.wait(DELAY_MS);
   });
 
   describe('Проверка всех ингредиентов', () => {
@@ -57,15 +52,12 @@ describe('Конструктор бургера', () => {
     it('Должен перемещать начинку вниз', () => {
       cy.addIngredient(MAIN._id);
       cy.addIngredient(SAUCE._id);
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]')
         .first()
         .within(() => {
           cy.get('button.move_button').eq(1).click();
         });
-
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]')
         .first()
@@ -78,15 +70,12 @@ describe('Конструктор бургера', () => {
     it('Должен перемещать начинку вверх', () => {
       cy.addIngredient(MAIN._id);
       cy.addIngredient(SAUCE._id);
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]')
         .eq(1)
         .within(() => {
           cy.get('button.move_button').first().click();
         });
-
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]')
         .first()
@@ -99,8 +88,6 @@ describe('Конструктор бургера', () => {
     it('Должен удалять начинку из конструктора', () => {
       cy.addIngredient(MAIN._id);
       cy.addIngredient(SAUCE._id);
-      cy.wait(500);
-
       cy.get('[data-test-id^="constructor-item-"]').should('have.length', 2);
 
       cy.get('[data-test-id^="constructor-item-"]')
@@ -108,8 +95,6 @@ describe('Конструктор бургера', () => {
         .within(() => {
           cy.get('.constructor-element__action').click();
         });
-
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]').should('have.length', 1);
       cy.get('[data-test-id^="constructor-item-"]')
@@ -124,15 +109,12 @@ describe('Конструктор бургера', () => {
     it('Должен удалять соус из конструктора', () => {
       cy.addIngredient(MAIN._id);
       cy.addIngredient(SAUCE._id);
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]')
         .eq(1)
         .within(() => {
           cy.get('.constructor-element__action').click();
         });
-
-      cy.wait(500);
 
       cy.get('[data-test-id^="constructor-item-"]').should('have.length', 1);
       cy.get('[data-test-id^="constructor-item-"]')
@@ -170,6 +152,15 @@ describe('Конструктор бургера', () => {
       cy.contains('Детали ингредиента').should('be.visible');
       cy.get('[data-test-id="modal-overlay"]').click({ force: true });
       cy.contains('Детали ингредиента').should('not.exist');
+    });
+
+    it('Должен закрывать модальное окно по нажатию Escape', () => {
+      cy.clickIngredientLink(BUN._id);
+      cy.contains('Детали ингредиента').should('be.visible');
+      cy.contains(BUN.name).should('be.visible');
+      cy.get('body').type('{esc}');
+      cy.contains('Детали ингредиента').should('not.exist');
+      cy.contains(BUN.name).should('not.exist');
     });
   });
 });

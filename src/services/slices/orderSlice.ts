@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { orderBurgerApi } from '@api';
 import { TOrder } from '@utils-types';
+import { fetchUserOrders } from './ordersSlice';
 
 type TOrderState = {
   orderRequest: boolean;
@@ -16,8 +17,9 @@ export const initialState: TOrderState = {
 
 export const postOrder = createAsyncThunk<TOrder, string[]>(
   'order/post',
-  async (data: string[]) => {
+  async (data: string[], { dispatch }) => {
     const response = await orderBurgerApi(data);
+    dispatch(fetchUserOrders());
     return response.order;
   }
 );

@@ -1,12 +1,13 @@
 import ingredients from '../../__mocks__/ingredients.json';
 import orderCreate from '../../__mocks__/order-create.json';
 import user from '../../__mocks__/user.json';
+import { TIngredient } from '@utils-types';
 
 // #region Перехват
 Cypress.Commands.add('interceptIngredients', () => {
   cy.intercept('GET', 'https://norma.education-services.ru/api/ingredients', {
     statusCode: 200,
-    body: { success: true, data: ingredients }
+    body: { success: true, data: ingredients as TIngredient[] }
   }).as('getIngredients');
 });
 
@@ -79,7 +80,7 @@ Cypress.Commands.add('moveIngredientDown', (ingredientName: string) => {
     .click();
 });
 
-Cypress.Commands.add('checkIngredientDetails', (ingredient: any) => {
+Cypress.Commands.add('checkIngredientDetails', (ingredient: TIngredient) => {
   cy.contains('Детали ингредиента').should('be.visible');
   cy.contains('Калории, ккал').parent().contains(ingredient.calories);
   cy.contains('Белки, г').parent().contains(ingredient.proteins);
@@ -113,7 +114,7 @@ declare global {
       clickIngredientLink(ingredientId: string): Chainable<void>;
       closeModal(): Chainable<void>;
       modalShouldBeClosed(): Chainable<void>;
-      checkIngredientDetails(ingredient: any): Chainable<void>;
+      checkIngredientDetails(ingredient: TIngredient): Chainable<void>;
     }
   }
 }

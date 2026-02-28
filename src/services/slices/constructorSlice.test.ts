@@ -136,6 +136,33 @@ describe('constructorSlice', () => {
       expect(newState.ingredients).toHaveLength(2);
       expect(newState.ingredients).toEqual(originalState.ingredients);
     });
+
+    it('не должен ничего делать при удалении из пустого конструктора', () => {
+      const removeAction = removeIngredient('any-id');
+      const newState = constructorReducer(initialState, removeAction);
+
+      expect(newState.ingredients).toEqual([]);
+      expect(newState.bun).toBeNull();
+    });
+
+    it('не должен ничего делать при удалении с пустым id', () => {
+      const removeAction = removeIngredient('');
+      const newState = constructorReducer(state, removeAction);
+
+      expect(newState.ingredients).toHaveLength(2);
+      expect(newState.ingredients).toEqual(state.ingredients);
+    });
+
+    it('не должен ничего делать при удалении после очистки конструктора', () => {
+      const clearAction = { type: clearConstructor.type };
+      const clearedState = constructorReducer(state, clearAction);
+
+      const removeAction = removeIngredient('some-id');
+      const newState = constructorReducer(clearedState, removeAction);
+
+      expect(newState.ingredients).toEqual([]);
+      expect(newState.bun).toBeNull();
+    });
   });
 
   describe('перемещение ингредиентов', () => {
@@ -208,6 +235,79 @@ describe('constructorSlice', () => {
       expect(newState.ingredients).toHaveLength(1);
       expect(newState.ingredients).toEqual(singleIngredientState.ingredients);
     });
+
+    it('не должен ничего менять при перемещении с отрицательным индексом вверх', () => {
+      const moveUpAction = moveIngredientUp(-1);
+      const newState = constructorReducer(state, moveUpAction);
+
+      expect(newState.ingredients).toEqual(state.ingredients);
+    });
+
+    it('не должен ничего менять при перемещении с отрицательным индексом вниз', () => {
+      const moveDownAction = moveIngredientDown(-5);
+      const newState = constructorReducer(state, moveDownAction);
+
+      expect(newState.ingredients).toEqual(state.ingredients);
+    });
+
+    it('не должен ничего менять при перемещении с индексом больше длины массива вверх', () => {
+      const moveUpAction = moveIngredientUp(10);
+      const newState = constructorReducer(state, moveUpAction);
+
+      expect(newState.ingredients).toEqual(state.ingredients);
+    });
+
+    it('не должен ничего менять при перемещении с индексом больше длины массива вниз', () => {
+      const moveDownAction = moveIngredientDown(10);
+      const newState = constructorReducer(state, moveDownAction);
+
+      expect(newState.ingredients).toEqual(state.ingredients);
+    });
+
+    it('не должен ничего менять при перемещении в пустом конструкторе', () => {
+      const moveUpAction = moveIngredientUp(0);
+      const newState = constructorReducer(initialState, moveUpAction);
+
+      expect(newState.ingredients).toEqual([]);
+    });
+
+    it('должен корректно перемещать после удаления ингредиента', () => {
+      let currentState = constructorReducer(
+        initialState,
+        addIngredient(TEST_INGREDIENTS.MAIN)
+      );
+      currentState = constructorReducer(
+        currentState,
+        addIngredient(TEST_INGREDIENTS.SAUCE)
+      );
+      currentState = constructorReducer(
+        currentState,
+        addIngredient(TEST_INGREDIENTS.MAIN)
+      );
+
+      expect(currentState.ingredients[0].type).toBe('main');
+      expect(currentState.ingredients[1].type).toBe('sauce');
+      expect(currentState.ingredients[2].type).toBe('main');
+
+      const middleId = currentState.ingredients[1].id;
+      currentState = constructorReducer(
+        currentState,
+        removeIngredient(middleId)
+      );
+
+      expect(currentState.ingredients).toHaveLength(2);
+      expect(currentState.ingredients[0].type).toBe('main');
+      expect(currentState.ingredients[1].type).toBe('main');
+
+      const main1Id = currentState.ingredients[0].id;
+      const main2Id = currentState.ingredients[1].id;
+
+      const moveUpAction = moveIngredientUp(1);
+      const newState = constructorReducer(currentState, moveUpAction);
+
+      expect(newState.ingredients[0].id).toBe(main2Id);
+      expect(newState.ingredients[1].id).toBe(main1Id);
+    });
   });
 
   describe('очистка конструктора', () => {
@@ -217,12 +317,32 @@ describe('constructorSlice', () => {
       state = constructorReducer(state, addIngredient(TEST_INGREDIENTS.SAUCE));
     });
 
-    it('должен полностью очистить конструктор (булку и все ингредиенты)', () => {
+    it('должен полностью очистить конструктор', () => {
       const clearAction = { type: clearConstructor.type };
       const newState = constructorReducer(state, clearAction);
 
       expect(newState.bun).toBeNull();
       expect(newState.ingredients).toHaveLength(0);
+    });
+
+    it('должен корректно очищать уже пустой конструктор', () => {
+      const clearAction = { type: clearConstructor.type };
+      const newState = constructorReducer(initialState, clearAction);
+
+      expect(newState.bun).toBeNull();
+      expect(newState.ingredients).toEqual([]);
+    });
+
+    it('должен корректно обрабатывать множественную очистку', () => {
+      const clearAction = { type: clearConstructor.type };
+
+      const firstClear = constructorReducer(state, clearAction);
+      expect(firstClear.bun).toBeNull();
+      expect(firstClear.ingredients).toHaveLength(0);
+
+      const secondClear = constructorReducer(firstClear, clearAction);
+      expect(secondClear.bun).toBeNull();
+      expect(secondClear.ingredients).toHaveLength(0);
     });
   });
 });

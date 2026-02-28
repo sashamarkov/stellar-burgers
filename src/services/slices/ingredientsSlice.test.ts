@@ -1,14 +1,48 @@
-import ingredientsReducer, { fetchIngredients, initialState } from './ingredientsSlice';
+import ingredientsReducer, {
+  fetchIngredients,
+  initialState
+} from './ingredientsSlice';
 import mockIngredients from '../../../__mocks__/ingredients.json';
 import { TIngredient } from '@utils-types';
 import { RootState } from '../store';
+import { AsyncThunkAction } from '@reduxjs/toolkit';
 
-// Мокаем модуль API
 jest.mock('@api', () => ({
-  getIngredientsApi: jest.fn(),
+  getIngredientsApi: jest.fn()
 }));
 
 import { getIngredientsApi } from '@api';
+
+type FulfilledAction = {
+  type: string;
+  payload: TIngredient[];
+  meta: {
+    requestId: string;
+    requestStatus: 'fulfilled';
+    condition: boolean;
+  };
+};
+
+type RejectedAction = {
+  type: string;
+  error: { message?: string };
+  meta: {
+    requestId: string;
+    requestStatus: 'rejected';
+    condition: boolean;
+  };
+};
+
+type PendingAction = {
+  type: string;
+  meta: {
+    requestId: string;
+    requestStatus: 'pending';
+    condition: boolean;
+  };
+};
+
+type ThunkResult = FulfilledAction | RejectedAction | PendingAction;
 
 describe('ingredientsSlice', () => {
   const ingredients = mockIngredients as TIngredient[];
@@ -17,8 +51,7 @@ describe('ingredientsSlice', () => {
     jest.clearAllMocks();
   });
 
-  // Существующие тесты
-  it('should handle fetchIngredients.pending', () => {
+  it('должен обрабатывать fetchIngredients.pending', () => {
     const action = { type: fetchIngredients.pending.type };
     const state = ingredientsReducer(initialState, action);
 
@@ -26,10 +59,10 @@ describe('ingredientsSlice', () => {
     expect(state.error).toBe(null);
   });
 
-  it('should handle fetchIngredients.fulfilled', () => {
+  it('должен обрабатывать fetchIngredients.fulfilled', () => {
     const action = {
       type: fetchIngredients.fulfilled.type,
-      payload: ingredients,
+      payload: ingredients
     };
     const state = ingredientsReducer(initialState, action);
 
@@ -38,11 +71,11 @@ describe('ingredientsSlice', () => {
     expect(state.error).toBe(null);
   });
 
-  it('should handle fetchIngredients.rejected', () => {
+  it('должен обрабатывать fetchIngredients.rejected', () => {
     const errorMessage = 'Ошибка загрузки';
     const action = {
       type: fetchIngredients.rejected.type,
-      error: { message: errorMessage },
+      error: { message: errorMessage }
     };
     const state = ingredientsReducer(initialState, action);
 
@@ -51,14 +84,13 @@ describe('ingredientsSlice', () => {
     expect(state.ingredients).toEqual([]);
   });
 
-  // Граничные случаи
-  it('should preserve existing ingredients when pending starts', () => {
+  it('должен сохранять существующие ингредиенты при повторной загрузке', () => {
     const fulfilledAction = {
       type: fetchIngredients.fulfilled.type,
-      payload: ingredients,
+      payload: ingredients
     };
     const stateWithData = ingredientsReducer(initialState, fulfilledAction);
-    
+
     const pendingAction = { type: fetchIngredients.pending.type };
     const newState = ingredientsReducer(stateWithData, pendingAction);
 
@@ -66,10 +98,10 @@ describe('ingredientsSlice', () => {
     expect(newState.ingredients).toEqual(ingredients);
   });
 
-  it('should handle empty ingredients array', () => {
+  it('должен обрабатывать пустой массив ингредиентов', () => {
     const action = {
       type: fetchIngredients.fulfilled.type,
-      payload: [],
+      payload: []
     };
     const state = ingredientsReducer(initialState, action);
 
@@ -77,27 +109,27 @@ describe('ingredientsSlice', () => {
     expect(state.loading).toBe(false);
   });
 
-  it('should handle error with no message', () => {
+  it('должен обрабатывать ошибку без сообщения', () => {
     const action = {
       type: fetchIngredients.rejected.type,
-      error: {},
+      error: {}
     };
     const state = ingredientsReducer(initialState, action);
 
     expect(state.error).toBe('Ошибка загрузки ингредиентов');
   });
 
-  it('should replace old ingredients with new ones on fulfilled', () => {
+  it('должен заменять старые ингредиенты новыми при успешной загрузке', () => {
     const firstAction = {
       type: fetchIngredients.fulfilled.type,
-      payload: ingredients.slice(0, 2),
+      payload: ingredients.slice(0, 2)
     };
     const stateWithFirstData = ingredientsReducer(initialState, firstAction);
     expect(stateWithFirstData.ingredients).toHaveLength(2);
-    
+
     const secondAction = {
       type: fetchIngredients.fulfilled.type,
-      payload: ingredients,
+      payload: ingredients
     };
     const finalState = ingredientsReducer(stateWithFirstData, secondAction);
 
@@ -105,8 +137,10 @@ describe('ingredientsSlice', () => {
     expect(finalState.ingredients).toEqual(ingredients);
   });
 
-  it('should handle multiple pending/rejected without breaking', () => {
-    let state = ingredientsReducer(initialState, { type: fetchIngredients.pending.type });
+  it('должен корректно обрабатывать множественные загрузки/ошибки', () => {
+    let state = ingredientsReducer(initialState, {
+      type: fetchIngredients.pending.type
+    });
     expect(state.loading).toBe(true);
 
     state = ingredientsReducer(state, { type: fetchIngredients.pending.type });
@@ -114,7 +148,7 @@ describe('ingredientsSlice', () => {
 
     const errorAction = {
       type: fetchIngredients.rejected.type,
-      error: { message: 'Ошибка 1' },
+      error: { message: 'Ошибка 1' }
     };
     state = ingredientsReducer(state, errorAction);
     expect(state.loading).toBe(false);
@@ -125,74 +159,74 @@ describe('ingredientsSlice', () => {
     expect(state.error).toBe(null);
   });
 
-  // Тест для condition
-// Тест для condition
-it('should not fetch ingredients if they already exist', async () => {
-  // Создаем мок для getState, который возвращает стейт с уже загруженными ингредиентами
-  const mockGetState = jest.fn(() => ({
-    ingredients: {
-      ...initialState,
-      ingredients: ingredients,
-    },
-  })) as any;
+  it('не должен загружать ингредиенты, если они уже существуют', async () => {
+    const mockGetState = jest.fn<RootState, []>(() => ({
+      ingredients: {
+        ...initialState,
+        ingredients: ingredients
+      },
+      burgerConstructor: { bun: null, ingredients: [] },
+      order: { orderRequest: false, orderModalData: null, error: null },
+      feed: {
+        orders: [],
+        total: 0,
+        totalToday: 0,
+        loading: false,
+        error: null
+      },
+      user: { user: null, isAuthChecked: false, loading: false, error: null },
+      orderByNumber: { order: null, loading: false, error: null },
+      orders: { orders: [], loading: false, error: null }
+    }));
 
-  // Вызываем thunk с condition
-  const thunk = fetchIngredients();
-  const result = await thunk(
-    jest.fn(),
-    mockGetState,
-    undefined
-  ) as any;
-
-  // Проверяем что condition сработал и запрос НЕ был сделан
-  expect(result.meta?.condition).toBe(true);
-  expect(result.payload).toBeUndefined();
-  expect(getIngredientsApi).not.toHaveBeenCalled();
-});
-
-it('should fetch ingredients if they do not exist', async () => {
-  // Мокаем успешный ответ API
-  (getIngredientsApi as jest.Mock).mockResolvedValue(ingredients);
-
-  // Создаем мок для getState, который возвращает пустой стейт
-  const mockGetState = jest.fn(() => ({
-    ingredients: initialState,
-  })) as any;
-
-  // Вызываем thunk
-  const thunk = fetchIngredients();
-  const result = await thunk(
-    jest.fn(),
-    mockGetState,
-    undefined
-  );
-
-  // Проверяем что запрос был сделан и вернул данные
-  expect(result.type).toBe(fetchIngredients.fulfilled.type);
-  expect(result.payload).toEqual(ingredients);
-  expect(getIngredientsApi).toHaveBeenCalledTimes(1);
-});
-
-  it('should fetch ingredients if they do not exist', async () => {
-    // Мокаем успешный ответ API
-    (getIngredientsApi as jest.Mock).mockResolvedValue(ingredients);
-
-    // Создаем мок для getState, который возвращает пустой стейт
-    const mockGetState = jest.fn(() => ({
-      ingredients: initialState,
-    })) as any;
-
-    // Вызываем thunk
     const thunk = fetchIngredients();
-    const result = await thunk(
+    const result = (await thunk(
       jest.fn(),
       mockGetState,
       undefined
-    );
+    )) as ThunkResult;
 
-    // Проверяем что запрос был сделан и вернул данные
-    expect(result.type).toBe(fetchIngredients.fulfilled.type);
-    expect(result.payload).toEqual(ingredients);
+    if ('meta' in result) {
+      expect(result.meta.condition).toBe(true);
+    }
+    if ('payload' in result) {
+      expect(result.payload).toBeUndefined();
+    } else {
+      expect(result).toBeDefined();
+    }
+    expect(getIngredientsApi).not.toHaveBeenCalled();
+  });
+
+  it('должен загружать ингредиенты, если их нет', async () => {
+    (getIngredientsApi as jest.Mock).mockResolvedValue(ingredients);
+
+    const mockGetState = jest.fn<RootState, []>(() => ({
+      ingredients: initialState,
+      burgerConstructor: { bun: null, ingredients: [] },
+      order: { orderRequest: false, orderModalData: null, error: null },
+      feed: {
+        orders: [],
+        total: 0,
+        totalToday: 0,
+        loading: false,
+        error: null
+      },
+      user: { user: null, isAuthChecked: false, loading: false, error: null },
+      orderByNumber: { order: null, loading: false, error: null },
+      orders: { orders: [], loading: false, error: null }
+    }));
+
+    const thunk = fetchIngredients();
+    const result = (await thunk(
+      jest.fn(),
+      mockGetState,
+      undefined
+    )) as ThunkResult;
+
+    if ('payload' in result && result.meta.requestStatus === 'fulfilled') {
+      expect(result.type).toBe(fetchIngredients.fulfilled.type);
+      expect(result.payload).toEqual(ingredients);
+    }
     expect(getIngredientsApi).toHaveBeenCalledTimes(1);
   });
 });

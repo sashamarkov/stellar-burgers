@@ -15,11 +15,11 @@ describe('Создание заказа', () => {
 
     cy.visit('/');
     cy.wait('@getIngredients');
+    cy.wait('@getUser');
   });
 
   afterEach(() => {
     cy.clearAuthTokens();
-    cy.wait(500);
   });
 
   it('Должен создавать заказ и очищать конструктор', () => {
