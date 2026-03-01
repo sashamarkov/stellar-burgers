@@ -10,7 +10,7 @@ type TFeedState = {
   error: string | null;
 };
 
-const initialState: TFeedState = {
+export const initialState: TFeedState = {
   orders: [],
   total: 0,
   totalToday: 0,
@@ -21,9 +21,7 @@ const initialState: TFeedState = {
 export const fetchFeeds = createAsyncThunk<TOrdersData>(
   'feed/fetchAll',
   async () => {
-    console.log('Fetching feeds...');
     const response = await getFeedsApi();
-    console.log('Feeds response:', response);
     return response;
   }
 );
@@ -43,6 +41,7 @@ const feedSlice = createSlice({
         state.orders = action.payload.orders;
         state.total = action.payload.total;
         state.totalToday = action.payload.totalToday;
+        state.error = null;
       })
       .addCase(fetchFeeds.rejected, (state, action) => {
         state.loading = false;

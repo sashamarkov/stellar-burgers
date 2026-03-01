@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { orderBurgerApi } from '@api';
 import { TOrder } from '@utils-types';
+import { fetchUserOrders } from './ordersSlice';
 
 type TOrderState = {
   orderRequest: boolean;
@@ -8,7 +9,7 @@ type TOrderState = {
   error: string | null;
 };
 
-const initialState: TOrderState = {
+export const initialState: TOrderState = {
   orderRequest: false,
   orderModalData: null,
   error: null
@@ -16,8 +17,9 @@ const initialState: TOrderState = {
 
 export const postOrder = createAsyncThunk<TOrder, string[]>(
   'order/post',
-  async (data: string[]) => {
+  async (data: string[], { dispatch }) => {
     const response = await orderBurgerApi(data);
+    dispatch(fetchUserOrders());
     return response.order;
   }
 );
@@ -40,6 +42,7 @@ const orderSlice = createSlice({
       .addCase(postOrder.fulfilled, (state, action) => {
         state.orderRequest = false;
         state.orderModalData = action.payload;
+        state.error = null;
       })
       .addCase(postOrder.rejected, (state, action) => {
         state.orderRequest = false;

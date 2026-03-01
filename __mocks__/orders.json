@@ -1,0 +1,20 @@
+[
+  {
+    "_id": "order1",
+    "number": 12345,
+    "status": "done",
+    "name": "Тестовый заказ 1",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "ingredients": ["bun1", "main1", "sauce1"]
+  },
+  {
+    "_id": "order2",
+    "number": 12346,
+    "status": "pending",
+    "name": "Тестовый заказ 2",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "ingredients": ["bun2", "main2", "sauce2"]
+  }
+]

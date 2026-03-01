@@ -78,11 +78,46 @@ const App = () => {
           path='/profile/orders'
           element={<OnlyAuth component={<ProfileOrders />} />}
         />
-        <Route path='/ingredients/:id' element={<IngredientDetails />} />
-        <Route path='/feed/:number' element={<OrderInfo />} />
+        <Route
+          path='/ingredients/:id'
+          element={
+            <div className={styles.detailPageWrap}>
+              <div className={styles.detailHeader}>
+                <h3 className={`text text_type_main-large`}>
+                  Детали ингредиента
+                </h3>
+              </div>
+              <IngredientDetails />
+            </div>
+          }
+        />
+        <Route
+          path='/feed/:number'
+          element={
+            <div className={styles.detailPageWrap}>
+              <div className={styles.detailHeader}>
+                <h3 className={`text text_type_main-large`}>Детали заказа</h3>
+              </div>
+              <OrderInfo />
+            </div>
+          }
+        />
         <Route
           path='/profile/orders/:number'
-          element={<OnlyAuth component={<OrderInfo />} />}
+          element={
+            <OnlyAuth
+              component={
+                <div className={styles.detailPageWrap}>
+                  <div className={styles.detailHeader}>
+                    <h3 className={`text text_type_main-large`}>
+                      Детали заказа
+                    </h3>
+                  </div>
+                  <OrderInfo />
+                </div>
+              }
+            />
+          }
         />
         <Route path='*' element={<NotFound404 />} />
       </Routes>

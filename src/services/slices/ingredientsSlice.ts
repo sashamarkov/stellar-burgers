@@ -9,7 +9,7 @@ type TIngredientsState = {
   error: string | null;
 };
 
-const initialState: TIngredientsState = {
+export const initialState: TIngredientsState = {
   ingredients: [],
   loading: false,
   error: null
@@ -24,7 +24,6 @@ export const fetchIngredients = createAsyncThunk(
   {
     condition: (_, { getState }) => {
       const state = getState() as RootState;
-      // Не загружаем, если уже загружены
       if (state.ingredients.ingredients.length > 0) {
         return false;
       }
@@ -46,6 +45,7 @@ const ingredientsSlice = createSlice({
         (state, action: PayloadAction<TIngredient[]>) => {
           state.loading = false;
           state.ingredients = action.payload;
+          state.error = null;
         }
       )
       .addCase(fetchIngredients.rejected, (state, action) => {

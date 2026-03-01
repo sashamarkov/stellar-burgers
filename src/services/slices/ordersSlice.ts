@@ -8,7 +8,7 @@ type TOrdersState = {
   error: string | null;
 };
 
-const initialState: TOrdersState = {
+export const initialState: TOrdersState = {
   orders: [],
   loading: false,
   error: null
@@ -39,6 +39,7 @@ const ordersSlice = createSlice({
       .addCase(fetchUserOrders.fulfilled, (state, action) => {
         state.loading = false;
         state.orders = action.payload;
+        state.error = null;
       })
       .addCase(fetchUserOrders.rejected, (state, action) => {
         state.loading = false;
