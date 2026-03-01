@@ -7,7 +7,33 @@ import constructorReducer, {
   clearConstructor
 } from './constructorSlice';
 import mockIngredients from '../../../__mocks__/ingredients.json';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TConstructorIngredient } from '@utils-types';
+
+const expectIngredientWithId = (
+  ingredient: TConstructorIngredient | null | undefined,
+  expectedData: TIngredient
+) => {
+  expect(ingredient).toBeDefined();
+  expect(ingredient).toMatchObject({
+    _id: expectedData._id,
+    name: expectedData.name,
+    type: expectedData.type,
+    price: expectedData.price,
+    calories: expectedData.calories,
+    carbohydrates: expectedData.carbohydrates,
+    fat: expectedData.fat,
+    image: expectedData.image,
+    image_large: expectedData.image_large,
+    image_mobile: expectedData.image_mobile
+  });
+  expectValidId(ingredient?.id);
+};
+
+const expectValidId = (id: string | undefined) => {
+  expect(id).toBeDefined();
+  expect(id).toMatch(/^[A-Za-z0-9_-]{21}$/);
+  return id;
+};
 
 describe('constructorSlice', () => {
   const ingredients = mockIngredients as TIngredient[];
@@ -29,10 +55,7 @@ describe('constructorSlice', () => {
       const action = addIngredient(TEST_INGREDIENTS.BUN);
       const newState = constructorReducer(state, action);
 
-      expect(newState.bun).toEqual({
-        ...TEST_INGREDIENTS.BUN,
-        id: expect.any(String)
-      });
+      expectIngredientWithId(newState.bun, TEST_INGREDIENTS.BUN);
       expect(newState.ingredients).toEqual([]);
     });
 
@@ -42,10 +65,7 @@ describe('constructorSlice', () => {
 
       expect(newState.bun).toBeNull();
       expect(newState.ingredients).toHaveLength(1);
-      expect(newState.ingredients[0]).toEqual({
-        ...TEST_INGREDIENTS.MAIN,
-        id: expect.any(String)
-      });
+      expectIngredientWithId(newState.ingredients[0], TEST_INGREDIENTS.MAIN);
     });
 
     it('должен добавить соус в список ингредиентов', () => {
@@ -54,25 +74,19 @@ describe('constructorSlice', () => {
 
       expect(newState.bun).toBeNull();
       expect(newState.ingredients).toHaveLength(1);
-      expect(newState.ingredients[0]).toEqual({
-        ...TEST_INGREDIENTS.SAUCE,
-        id: expect.any(String)
-      });
+      expectIngredientWithId(newState.ingredients[0], TEST_INGREDIENTS.SAUCE);
     });
 
     it('должен заменить существующую булку на новую при добавлении', () => {
       const firstBunAction = addIngredient(TEST_INGREDIENTS.BUN);
       const stateWithFirstBun = constructorReducer(state, firstBunAction);
+      const firstBunId = stateWithFirstBun.bun?.id;
 
       const secondBunAction = addIngredient(TEST_INGREDIENTS.ANOTHER_BUN);
       const newState = constructorReducer(stateWithFirstBun, secondBunAction);
 
-      expect(newState.bun).toEqual({
-        ...TEST_INGREDIENTS.ANOTHER_BUN,
-        id: expect.any(String)
-      });
-      expect(newState.bun?._id).toBe(TEST_INGREDIENTS.ANOTHER_BUN._id);
-      expect(newState.bun?._id).not.toBe(TEST_INGREDIENTS.BUN._id);
+      expectIngredientWithId(newState.bun, TEST_INGREDIENTS.ANOTHER_BUN);
+      expect(newState.bun?.id).not.toBe(firstBunId);
     });
 
     it('должен добавить уникальный id каждому ингредиенту', () => {
@@ -81,6 +95,11 @@ describe('constructorSlice', () => {
       const state1 = constructorReducer(state, action1);
       const state2 = constructorReducer(state1, action2);
 
+      expect(state1.ingredients).toHaveLength(1);
+      expect(state2.ingredients).toHaveLength(2);
+
+      expectValidId(state1.ingredients[0].id);
+      expectValidId(state2.ingredients[1].id);
       expect(state1.ingredients[0].id).not.toBe(state2.ingredients[1].id);
     });
 
@@ -99,6 +118,9 @@ describe('constructorSlice', () => {
       );
 
       expect(currentState.ingredients).toHaveLength(3);
+      currentState.ingredients.forEach((ingredient) => {
+        expectValidId(ingredient.id);
+      });
     });
 
     it('должен добавлять ингредиенты в пустой конструктор', () => {
@@ -138,7 +160,7 @@ describe('constructorSlice', () => {
     });
 
     it('не должен ничего делать при удалении из пустого конструктора', () => {
-      const removeAction = removeIngredient('any-id');
+      const removeAction = removeIngredient('some-id');
       const newState = constructorReducer(initialState, removeAction);
 
       expect(newState.ingredients).toEqual([]);
